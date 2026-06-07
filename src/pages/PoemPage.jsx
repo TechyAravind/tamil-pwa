@@ -1,0 +1,203 @@
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import Navbar from '../components/Navbar'
+import PoemLineAccordion from '../components/PoemLineAccordion'
+import { supabase } from '../supabase'
+
+const TABS = [
+  { id: 'meaning', label: 'சொல் பொருள்' },
+  { id: 'grammar', label: 'இலக்கணம்' },
+  { id: 'literary', label: 'இலக்கிய நயம்' }
+]
+
+export default function PoemPage() {
+  const { topicId } = useParams()
+  const [activeTab, setActiveTab] = useState('meaning')
+  const [topic, setTopic]         = useState(null)
+  const [lines, setLines]         = useState([])
+  const [verbAnalysisMap, setVerbAnalysisMap] = useState({})  // morphemeId → analysis object
+  const [literaryNotes, setLiteraryNotes] = useState([])
+  const [loading, setLoading]     = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      // 1. Topic title
+      const { data: topicData } = await supabase
+        .from('topics').select('title').eq('id', topicId).single()
+      setTopic(topicData)
+
+      // 2. Get the செய்யுள் பகுதி page
+      const { data: pageData } = await supabase
+        .from('pages')
+        .select('id')
+        .eq('topic_id', topicId)
+        .eq('page_type', 'செய்யுள் பகுதி')
+        .single()
+
+      if (!pageData) { setLoading(false); return }
+
+      const pageId = pageData.id
+
+      // 3. Get poem lines + their morphemes in one query
+      const { data: linesData } = await supabase
+        .from('poem_lines')
+        .select(`
+          id, line_number, raw_text,
+          morphemes (
+            id, position, display_form, word_meaning,
+            grammatical_label, is_verb, is_separator
+          )
+        `)
+        .eq('page_id', pageId)
+        .order('line_number')
+
+      setLines(linesData || [])
+
+      // 4. Collect all verb morpheme IDs, fetch their analyses
+      const verbIds = (linesData || [])
+        .flatMap((l) => l.morphemes || [])
+        .filter((m) => m.is_verb)
+        .map((m) => m.id)
+
+      if (verbIds.length > 0) {
+        const { data: analyses } = await supabase
+          .from('verb_analysis')
+          .select('morpheme_id, analysis')
+          .in('morpheme_id', verbIds)
+        const map = {}
+        ;(analyses || []).forEach((a) => { map[a.morpheme_id] = a })
+        setVerbAnalysisMap(map)
+      }
+
+      // 5. Literary notes
+      const { data: notes } = await supabase
+        .from('literary_notes')
+        .select('content_text, order_index')
+        .eq('page_id', pageId)
+        .order('order_index')
+      setLiteraryNotes(notes || [])
+
+      setLoading(false)
+    }
+    load()
+  }, [topicId])
+
+  if (loading) return (
+    <div className="min-h-screen bg-cream flex flex-col">
+      <Navbar showBack title="செய்யுள் பகுதி" />
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-primary text-xl animate-pulse">ஏற்றுகிறது…</p>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="min-h-screen bg-cream flex flex-col">
+      <Navbar showBack title={topic?.title || 'செய்யுள்'} />
+
+      {/* Tab bar — sticky below navbar */}
+      <div className="sticky top-14 z-20 bg-white border-b border-gray-100 shadow-sm">
+        <div className="flex max-w-2xl mx-auto">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 py-3 text-base font-semibold transition-colors min-h-[48px]
+                border-b-2 ${activeTab === tab.id
+                  ? 'text-primary border-primary'
+                  : 'text-gray-500 border-transparent hover:text-primary'
+                }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-6">
+        {/* ── Tab: சொல் பொருள் ──────────────────── */}
+        {activeTab === 'meaning' && (
+          <div>
+            <p className="text-sm text-gray-500 mb-4">
+              ஒவ்வொரு வரியையும் அழுத்தி சொல் பொருளை அறியுங்கள்
+            </p>
+            {lines.length === 0 ? (
+              <div className="card text-center text-gray-400 py-12">
+                <p className="text-4xl mb-3">📜</p>
+                <p>செய்யுள் வரிகள் சேர்க்கப்படவில்லை</p>
+              </div>
+            ) : (
+              lines.map((line) => (
+                <PoemLineAccordion
+                  key={line.id}
+                  line={line}
+                  verbAnalysisMap={verbAnalysisMap}
+                  mode="meaning"
+                />
+              ))
+            )}
+          </div>
+        )}
+
+        {/* ── Tab: இலக்கணம் ─────────────────────── */}
+        {activeTab === 'grammar' && (
+          <div>
+            {/* Legend */}
+            <div className="card mb-5 flex flex-wrap gap-3">
+              {[
+                { short: 'பெ', label: 'பெயர்ச்சொல்',  color: 'text-pos-noun',     bg: 'bg-blue-50 border-blue-200' },
+                { short: 'வி', label: 'வினைச்சொல்',  color: 'text-pos-verb',     bg: 'bg-green-50 border-green-200' },
+                { short: 'இ',  label: 'இடைச்சொல்',   color: 'text-pos-particle', bg: 'bg-yellow-50 border-yellow-200' },
+                { short: 'உ',  label: 'உரிச்சொல்',   color: 'text-pos-uri',      bg: 'bg-purple-50 border-purple-200' }
+              ].map((p) => (
+                <div key={p.short} className={`flex items-center gap-1.5 border rounded-lg px-2 py-1 ${p.bg}`}>
+                  <span className={`font-bold text-sm ${p.color}`}>{p.short}</span>
+                  <span className="text-xs text-gray-600">= {p.label}</span>
+                </div>
+              ))}
+              <div className="flex items-center gap-1.5 border-2 border-green-400 rounded-lg px-2 py-1 bg-green-50">
+                <span className="text-xs text-gray-600">🟢 வினைச்சொல் → பகுபத உறுப்பிலக்கணம் அழுத்துக</span>
+              </div>
+            </div>
+
+            {lines.length === 0 ? (
+              <div className="card text-center text-gray-400 py-12">
+                <p className="text-4xl mb-3">🔤</p>
+                <p>செய்யுள் வரிகள் சேர்க்கப்படவில்லை</p>
+              </div>
+            ) : (
+              lines.map((line) => (
+                <PoemLineAccordion
+                  key={line.id}
+                  line={line}
+                  verbAnalysisMap={verbAnalysisMap}
+                  mode="grammar"
+                />
+              ))
+            )}
+          </div>
+        )}
+
+        {/* ── Tab: இலக்கிய நயம் ─────────────────── */}
+        {activeTab === 'literary' && (
+          <div>
+            {literaryNotes.length === 0 ? (
+              <div className="card text-center text-gray-400 py-12">
+                <p className="text-4xl mb-3">✨</p>
+                <p>இலக்கிய நயக் குறிப்புகள் விரைவில் சேர்க்கப்படும்</p>
+              </div>
+            ) : (
+              <div className="space-y-5 font-md text-gray-800 leading-relaxed">
+                {literaryNotes.map((note, i) => (
+                  <div key={i} className="card">
+                    <p className="text-justify">{note.content_text}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+    </div>
+  )
+}
