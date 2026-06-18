@@ -9,9 +9,17 @@
 -- Safe to re-run (uses IF NOT EXISTS / ON CONFLICT guards)
 -- ============================================================
 
--- ── 1. Add enum values ───────────────────────────────────────────────────────
+-- ══════════════════════════════════════════════════════════════════════════════
+-- ▶▶ STEP 1 — Run ONLY these two lines first, then click Run.
+--             After they succeed, scroll down and run STEP 2.
+-- ══════════════════════════════════════════════════════════════════════════════
 ALTER TYPE page_type ADD VALUE IF NOT EXISTS 'தேர்வுக்குப் படித்தல்';
 ALTER TYPE page_type ADD VALUE IF NOT EXISTS 'வினாடிவினா';
+
+-- ══════════════════════════════════════════════════════════════════════════════
+-- ▶▶ STEP 2 — Select from here to the end, then click Run.
+--             (PostgreSQL requires enum values to be committed before use.)
+-- ══════════════════════════════════════════════════════════════════════════════
 
 -- ── 2. Create study_cards table ──────────────────────────────────────────────
 -- Each row = one content card.
