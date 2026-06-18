@@ -183,11 +183,11 @@ export default function StudyPage() {
     </div>
   )
 
-  // Filter cards for active tab (cards without the other tab's URL still show)
+  // Audio tab: only cards that have audio_url
+  // Video tab: only cards that have video_url
+  // Completely separate content sets
   const tabCards = cards.filter((c) =>
-    activeTab === 'audio'
-      ? (c.audio_url || c.text_content)   // show all in audio tab
-      : (c.video_url || c.text_content)   // show all in video tab
+    activeTab === 'audio' ? !!c.audio_url : !!c.video_url
   )
 
   return (
