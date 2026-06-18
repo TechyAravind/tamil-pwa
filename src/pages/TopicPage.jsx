@@ -5,11 +5,13 @@ import { supabase } from '../supabase'
 
 // All possible sub-page types in display order
 const SUB_PAGES = [
-  { type: 'நுழையும் முன்',       icon: '🌅', desc: 'கவிதையை அறியும் முன் தெரிந்துகொள்ள வேண்டியவை' },
-  { type: 'செய்யுள் பகுதி',     icon: '📜', desc: 'கவிதையின் வரிகள் மற்றும் பொருள்விளக்கம்' },
-  { type: 'இலக்கணப் பகுதி',    icon: '🔤', desc: 'இலக்கண விளக்கங்கள்' },
-  { type: 'துணைக் குறிப்புகள்', icon: '📌', desc: 'கூடுதல் குறிப்புகள் மற்றும் விளக்கங்கள்' },
-  { type: 'நூல் வெளி',          icon: '📚', desc: 'நூல் மற்றும் ஆசிரியர் குறித்த தகவல்கள்' }
+  { type: 'நுழையும் முன்',           icon: '🌅', desc: 'கவிதையை அறியும் முன் தெரிந்துகொள்ள வேண்டியவை' },
+  { type: 'செய்யுள் பகுதி',         icon: '📜', desc: 'கவிதையின் வரிகள் மற்றும் பொருள்விளக்கம்' },
+  { type: 'இலக்கணப் பகுதி',        icon: '🔤', desc: 'இலக்கண விளக்கங்கள்' },
+  { type: 'துணைக் குறிப்புகள்',     icon: '📌', desc: 'கூடுதல் குறிப்புகள் மற்றும் விளக்கங்கள்' },
+  { type: 'நூல் வெளி',              icon: '📚', desc: 'நூல் மற்றும் ஆசிரியர் குறித்த தகவல்கள்' },
+  { type: 'தேர்வுக்குப் படித்தல்',  icon: '🎧', desc: 'ஒலிப்பதிவு மற்றும் காணொளி மூலம் படிக்கலாம்' },
+  { type: 'வினாடிவினா',             icon: '❓', desc: 'சுய மதிப்பீட்டு வினாக்கள்' },
 ]
 
 export default function TopicPage() {
@@ -35,6 +37,10 @@ export default function TopicPage() {
   const navigate_to = (pageType) => {
     if (pageType === 'செய்யுள் பகுதி') {
       navigate(`/topic/${topicId}/poem`)
+    } else if (pageType === 'தேர்வுக்குப் படித்தல்') {
+      navigate(`/topic/${topicId}/study`)
+    } else if (pageType === 'வினாடிவினா') {
+      navigate(`/topic/${topicId}/quiz`)
     } else {
       // Encode Tamil page type for URL
       navigate(`/topic/${topicId}/${encodeURIComponent(pageType)}`)
