@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
-import useStore from '../store/useStore'
 import { supabase } from '../supabase'
 
 // ── Content-type tabs ─────────────────────────────────────────────────────────
@@ -11,13 +10,6 @@ const CONTENT_TABS = [
   { id: 'video', label: 'காட்சி விளக்கம்',   icon: '▶'  },
 ]
 
-// ── Font-size options (used inside the text tab) ──────────────────────────────
-const FONT_SIZES   = { small: 'text-sm', medium: 'text-base', large: 'text-xl' }
-const FONT_LABELS  = [
-  { key: 'small',  label: 'அ', sz: 14 },
-  { key: 'medium', label: 'அ', sz: 18 },
-  { key: 'large',  label: 'அ', sz: 24 },
-]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -41,7 +33,6 @@ export default function ProsePage() {
   const { topicId, pageType } = useParams()
   const decodedType = decodeURIComponent(pageType)
 
-  const { fontSize, setFontSize } = useStore()
   const [activeTab, setActiveTab] = useState('text')
   const [content,   setContent]   = useState([])
   const [images,    setImages]     = useState([])
@@ -143,28 +134,8 @@ export default function ProsePage() {
         {/* ══════════════════════════════════════════════════════════════════ */}
         {activeTab === 'text' && (
           <div>
-            {/* Font-size control */}
-            <div className="flex gap-2 mb-5">
-              {FONT_LABELS.map(({ key, label, sz }) => (
-                <button
-                  key={key}
-                  onClick={() => setFontSize(key)}
-                  className={`min-w-[44px] min-h-[44px] rounded-lg border font-bold
-                              transition-colors font-tamil
-                              ${fontSize === key
-                                ? 'bg-primary text-white border-primary'
-                                : 'bg-white text-primary border-gray-200 hover:border-primary'
-                              }`}
-                  style={{ fontSize: sz }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Prose paragraphs */}
-            <div className={`space-y-5 text-gray-800 leading-relaxed font-tamil
-                             ${FONT_SIZES[fontSize]}`}>
+            {/* Prose paragraphs — fixed readable size */}
+            <div className="space-y-5 text-gray-800 leading-relaxed font-tamil text-base">
               {content.length === 0 ? (
                 <div className="card text-center text-gray-400 py-12">
                   <p className="text-4xl mb-3">📄</p>
