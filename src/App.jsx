@@ -13,8 +13,9 @@ import TOCPage        from './pages/TOCPage'
 import TopicPage      from './pages/TopicPage'
 import ProsePage      from './pages/ProsePage'
 import PoemPage       from './pages/PoemPage'
-import StudyPage      from './pages/StudyPage'
-import QuizPage       from './pages/QuizPage'
+import StudyPage          from './pages/StudyPage'
+import QuizPage           from './pages/QuizPage'
+import ProseContentPage   from './pages/ProseContentPage'
 
 // ── Admin pages ───────────────────────────────────────────────────────────────
 import AdminLogin     from './pages/admin/LoginPage'
@@ -60,6 +61,7 @@ export default function App() {
         <Route path="/toc"                             element={<TOCPage />} />
         <Route path="/topic/:topicId"                  element={<TopicPage />} />
         <Route path="/topic/:topicId/poem"             element={<PoemPage />} />
+        <Route path="/topic/:topicId/prose-content"   element={<ProseContentPage />} />
         <Route path="/topic/:topicId/study"            element={<StudyPage />} />
         <Route path="/topic/:topicId/quiz"             element={<QuizPage />} />
         <Route path="/topic/:topicId/:pageType"        element={<ProsePage />} />
