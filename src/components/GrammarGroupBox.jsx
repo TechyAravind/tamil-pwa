@@ -3,7 +3,7 @@ import MorphemeChip from './MorphemeChip'
 import DraggableCombineUnit from './DraggableCombineUnit'
 import useSequentialCombine from '../hooks/useSequentialCombine'
 
-export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, groupVerbAnalysisMap }) {
+export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, groupVerbAnalysisMap, soloAnalysis }) {
   const units = morphemes.filter((m) => !m.is_separator)
   const connectorCount = Math.max(units.length - 1, 0)
 
@@ -39,7 +39,7 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
           <MorphemeChip
             morpheme={combinedMorpheme}
             mode="grammar"
-            verbAnalysis={group.combined_is_verb ? groupVerbAnalysisMap[group.id] : null}
+            verbAnalysis={group.combined_is_verb ? (soloAnalysis || groupVerbAnalysisMap[group.id]) : null}
           />
         </span>
         {connectorCount > 0 && (

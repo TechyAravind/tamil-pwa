@@ -4,42 +4,22 @@ import WordGroupBox from './WordGroupBox'
 import GrammarGroupBox from './GrammarGroupBox'
 import SandhiGroupBox from './SandhiGroupBox'
 
-/**
- * A single accordion poem line.
- * When expanded, shows morpheme chips in the selected tab mode.
- *
- * mode: 'meaning'  -> சொல் பொருள்      (WordGroupBox,    falls back to flat chips)
- *       'grammar'  -> இலக்கணக்குறிப்பு (GrammarGroupBox, falls back to flat chips)
- *       'sandhi'   -> இலக்கணம்         (SandhiGroupBox,  needs word_groups; no fallback)
- */
 export default function PoemLineAccordion({
   line, verbAnalysisMap, groupVerbAnalysisMap, sandhiRulesMap, mode
 }) {
   const [open, setOpen] = useState(false)
 
-  // Sort morphemes by position
   const morphemes = [...(line.morphemes || [])].sort((a, b) => a.position - b.position)
-
-  // Word groups - box containers that club the morphemes belonging to one
-  // சீர்/word together, with combine-to-view interactivity. Lines with no
-  // groups yet fall back to the legacy flat chip layout (meaning/grammar
-  // modes only), so existing content keeps working unchanged.
   const groups = [...(line.word_groups || [])].sort((a, b) => a.position - b.position)
-  const useGroupedLayout = (mode === 'meaning' || mode === 'grammar' || mode === 'sandhi') && groups.length > 0
 
   const morphemesByGroup = {}
-  if (useGroupedLayout) {
-    for (const m of morphemes) {
-      if (!m.word_group_id) continue
-      ;(morphemesByGroup[m.word_group_id] ||= []).push(m)
-    }
+  for (const m of morphemes) {
+    if (!m.word_group_id) continue
+    ;(morphemesByGroup[m.word_group_id] ||= []).push(m)
   }
-  const ungroupedMorphemes = useGroupedLayout
-    ? morphemes.filter((m) => !m.word_group_id)
-    : morphemes
+  const ungroupedMorphemes = morphemes.filter((m) => !m.word_group_id)
 
-  const renderGroup = (group) => {
-    const groupMorphemes = morphemesByGroup[group.id] || []
+  const renderGroup = (group, groupMorphemes, soloMorpheme) => {
     if (mode === 'meaning') {
       return (
         <WordGroupBox
@@ -58,9 +38,11 @@ export default function PoemLineAccordion({
           morphemes={groupMorphemes}
           verbAnalysisMap={verbAnalysisMap}
           groupVerbAnalysisMap={groupVerbAnalysisMap || {}}
+          soloAnalysis={soloMorpheme?.is_verb ? verbAnalysisMap?.[soloMorpheme.id] : null}
         />
       )
     }
+    if (soloMorpheme) return null
     return (
       <SandhiGroupBox
         key={group.id}
@@ -71,9 +53,36 @@ export default function PoemLineAccordion({
     )
   }
 
+  const items = [
+    ...groups.map((g) => ({
+      position: g.position,
+      node: renderGroup(g, morphemesByGroup[g.id] || [])
+    })),
+    ...ungroupedMorphemes.map((m) => {
+      if (m.is_separator) {
+        return {
+          position: m.position,
+          node: (
+            <span key={m.id} className="inline-flex items-end pb-2 px-1 text-gray-400 font-bold text-sm mb-2">
+              +
+            </span>
+          )
+        }
+      }
+      const soloGroup = {
+        id: `solo-${m.id}`,
+        position: m.position,
+        combined_display_form: m.display_form,
+        combined_meaning: m.word_meaning,
+        combined_grammatical_label: m.grammatical_label,
+        combined_is_verb: m.is_verb
+      }
+      return { position: m.position, node: renderGroup(soloGroup, [m], m) }
+    })
+  ].sort((a, b) => a.position - b.position)
+
   return (
     <div className="border border-cream-dark rounded-xl overflow-hidden mb-3">
-      {/* Line trigger */}
       <button
         onClick={() => setOpen((v) => !v)}
         className="w-full text-left px-4 py-4 flex items-center gap-3
@@ -85,7 +94,6 @@ export default function PoemLineAccordion({
         <span className="flex-1 text-lg font-medium text-gray-800">{line.raw_text}</span>
       </button>
 
-      {/* Expanded morpheme panel */}
       {open && (
         <div className="bg-cream-dark/40 px-4 py-4 border-t border-cream-dark">
           {mode === 'sandhi' && groups.length === 0 ? (
@@ -96,37 +104,9 @@ export default function PoemLineAccordion({
             <p className="text-gray-400 text-sm text-center py-2">
               சொல் பகுப்பு சேர்க்கப்படவில்லை
             </p>
-          ) : useGroupedLayout ? (
-            <div className="flex flex-wrap items-end">
-              {[
-                ...groups.map((g) => ({ type: 'group', position: g.position, group: g })),
-                ...ungroupedMorphemes.map((m) => ({ type: 'morpheme', position: m.position, morpheme: m }))
-              ]
-                .sort((a, b) => a.position - b.position)
-                .map((item) =>
-                  item.type === 'group' ? (
-                    renderGroup(item.group)
-                  ) : (
-                    <span key={item.morpheme.id} className="mb-2">
-                      <MorphemeChip
-                        morpheme={item.morpheme}
-                        verbAnalysis={item.morpheme.is_verb ? verbAnalysisMap[item.morpheme.id] : null}
-                        mode={mode}
-                      />
-                    </span>
-                  )
-                )}
-            </div>
           ) : (
-            <div className="flex flex-wrap gap-2 items-end">
-              {morphemes.map((m) => (
-                <MorphemeChip
-                  key={m.id}
-                  morpheme={m}
-                  verbAnalysis={m.is_verb ? verbAnalysisMap[m.id] : null}
-                  mode={mode}
-                />
-              ))}
+            <div className="flex flex-wrap items-end">
+              {items.map((item) => item.node)}
             </div>
           )}
         </div>
