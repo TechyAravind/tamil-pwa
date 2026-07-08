@@ -1,15 +1,8 @@
+import { useState } from 'react'
 import MorphemeChip from './MorphemeChip'
+import DraggableCombineUnit from './DraggableCombineUnit'
 import useSequentialCombine from '../hooks/useSequentialCombine'
 
-/**
- * GrammarGroupBox — the இலக்கணக்குறிப்பு tab's version of WordGroupBox.
- *
- * Same box + left-to-right tap-to-combine interaction as the சொல் பொருள்
- * tab, but chips show grammatical classification (பெ/வி/இ/உ) instead of
- * meanings, and the combined chip — if the whole word is itself a verb
- * form — shows the word's own பகுபத உறுப்பிலக்கணம் breakdown (looked up
- * by word_group_id, separate from the per-morpheme breakdowns).
- */
 export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, groupVerbAnalysisMap }) {
   const units = morphemes.filter((m) => !m.is_separator)
   const connectorCount = Math.max(units.length - 1, 0)
@@ -17,10 +10,14 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
   const { combineStep, fullyCombined, advance, reset, registerTapForDoubleTap } =
     useSequentialCombine(connectorCount)
 
+  const [dragging, setDragging] = useState(false)
+
   const boxClasses = `
     inline-flex items-end gap-0 px-2 py-1.5 mr-2 mb-2 rounded-xl border-2
     transition-colors
-    ${fullyCombined ? 'border-primary/60 bg-primary/5' : 'border-gray-300 bg-white/60'}
+    ${fullyCombined ? 'border-primary/60 bg-primary/5'
+      : dragging ? 'border-primary bg-primary/5'
+      : 'border-gray-300 bg-white/60'}
   `
 
   if (fullyCombined) {
@@ -62,30 +59,46 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
 
   return (
     <span className={boxClasses}>
-      {units.map((unit, i) => (
-        <span key={unit.id} className="inline-flex items-end">
+      {units.map((unit, i) => {
+        const chip = (
           <MorphemeChip
             morpheme={unit}
             verbAnalysis={unit.is_verb ? verbAnalysisMap[unit.id] : null}
             mode="grammar"
           />
-          {i < connectorCount && (
-            <button
-              type="button"
-              disabled={i !== combineStep}
-              onClick={() => advance(i)}
-              aria-label="இணை"
-              className={`mx-0.5 mb-2 w-6 h-6 rounded-full text-sm font-bold transition-all
-                ${i === combineStep
-                  ? 'bg-primary text-white hover:bg-primary/90 active:scale-90 animate-pulse cursor-pointer'
-                  : 'bg-gray-100 text-gray-300 cursor-default'}
-              `}
-            >
-              +
-            </button>
-          )}
-        </span>
-      ))}
+        )
+        const isDraggable = i === combineStep + 1
+
+        return (
+          <span key={unit.id} className="inline-flex items-end">
+            {isDraggable ? (
+              <DraggableCombineUnit
+                active
+                onCombine={() => advance(combineStep)}
+                onDragStateChange={setDragging}
+              >
+                {chip}
+              </DraggableCombineUnit>
+            ) : chip}
+
+            {i < connectorCount && (
+              <button
+                type="button"
+                disabled={i !== combineStep}
+                onClick={() => advance(i)}
+                aria-label="இணை"
+                className={`mx-0.5 mb-2 w-6 h-6 rounded-full text-sm font-bold transition-all
+                  ${i === combineStep
+                    ? 'bg-primary text-white hover:bg-primary/90 active:scale-90 animate-pulse cursor-pointer'
+                    : 'bg-gray-100 text-gray-300 cursor-default'}
+                `}
+              >
+                +
+              </button>
+            )}
+          </span>
+        )
+      })}
     </span>
   )
 }
