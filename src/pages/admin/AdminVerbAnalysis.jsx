@@ -7,23 +7,33 @@ const BLANK_ROW = { part: '', label: '' }
 export default function AdminVerbAnalysis() {
   const [rows, setRows]         = useState([])   // existing verb_analysis records
   const [verbMorphemes, setVerbMorphemes] = useState([])  // morphemes where is_verb=true
+  const [verbGroups, setVerbGroups]       = useState([])  // word_groups where combined_is_verb=true
+
+  const [targetType, setTargetType] = useState('morpheme') // 'morpheme' | 'group'
   const [selectedMorpheme, setSelectedMorpheme] = useState('')
+  const [selectedGroup, setSelectedGroup]       = useState('')
+
   const [analysisRows, setAnalysisRows] = useState([{ ...BLANK_ROW }])
   const [editingId, setEditingId] = useState(null)
   const [toast, setToast]       = useState(null)
 
   const load = async () => {
-    const [{ data: va }, { data: vm }] = await Promise.all([
+    const [{ data: va }, { data: vm }, { data: vg }] = await Promise.all([
       supabase.from('verb_analysis')
-        .select('*, morphemes(display_form, poem_lines(raw_text))')
+        .select('*, morphemes(display_form, poem_lines(raw_text)), word_groups(combined_display_form, poem_lines(raw_text))')
         .order('created_at'),
       supabase.from('morphemes')
         .select('id, display_form, poem_lines(raw_text)')
-        .eq('is_verb', true)
+        .eq('is_verb', true),
+      supabase.from('word_groups')
+        .select('id, combined_display_form, poem_lines(raw_text)')
+        .eq('combined_is_verb', true)
     ])
     setRows(va || [])
     setVerbMorphemes(vm || [])
+    setVerbGroups(vg || [])
     if (vm?.length && !selectedMorpheme) setSelectedMorpheme(vm[0].id)
+    if (vg?.length && !selectedGroup) setSelectedGroup(vg[0].id)
   }
   useEffect(() => { load() }, [])
 
@@ -36,11 +46,14 @@ export default function AdminVerbAnalysis() {
 
   const save = async (e) => {
     e.preventDefault()
-    if (!selectedMorpheme) return showToast('வினைச்சொல் தேர்வு செய்யவும்', 'error')
+    const targetId = targetType === 'morpheme' ? selectedMorpheme : selectedGroup
+    if (!targetId) return showToast('இலக்கு (verb morpheme / word group) தேர்வு செய்யவும்', 'error')
     const incomplete = analysisRows.some((r) => !r.part.trim() || !r.label.trim())
     if (incomplete) return showToast('அனைத்து நெடுவரிகளையும் நிரப்பவும்', 'error')
 
-    const payload = { morpheme_id: selectedMorpheme, analysis: analysisRows }
+    const payload = targetType === 'morpheme'
+      ? { morpheme_id: targetId, word_group_id: null, analysis: analysisRows }
+      : { morpheme_id: null, word_group_id: targetId, analysis: analysisRows }
 
     if (editingId) {
       const { error } = await supabase.from('verb_analysis').update(payload).eq('id', editingId)
@@ -63,7 +76,13 @@ export default function AdminVerbAnalysis() {
 
   const startEdit = (row) => {
     setEditingId(row.id)
-    setSelectedMorpheme(row.morpheme_id)
+    if (row.word_group_id) {
+      setTargetType('group')
+      setSelectedGroup(row.word_group_id)
+    } else {
+      setTargetType('morpheme')
+      setSelectedMorpheme(row.morpheme_id)
+    }
     setAnalysisRows(row.analysis.map((a) => ({ part: a.part, label: a.label })))
   }
 
@@ -76,16 +95,46 @@ export default function AdminVerbAnalysis() {
         <h3 className="font-semibold">{editingId ? 'Edit Analysis' : 'Add Verb Analysis'}</h3>
 
         <div>
-          <label className="label">வினைச்சொல் (Verb Morpheme) *</label>
-          <select className="input" value={selectedMorpheme}
-            onChange={(e) => setSelectedMorpheme(e.target.value)}>
-            <option value="">— தேர்வு செய்க —</option>
-            {verbMorphemes.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.display_form} — "{m.poem_lines?.raw_text}"
-              </option>
-            ))}
-          </select>
+          <label className="label">இலக்கு வகை (Target)</label>
+          <div className="flex gap-4 mb-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" checked={targetType === 'morpheme'}
+                onChange={() => setTargetType('morpheme')} className="accent-primary" />
+              <span className="text-sm">தனி உறுப்பு (individual morpheme)</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" checked={targetType === 'group'}
+                onChange={() => setTargetType('group')} className="accent-primary" />
+              <span className="text-sm">தொகுத்த சொல் (combined word group)</span>
+            </label>
+          </div>
+
+          {targetType === 'morpheme' ? (
+            <select className="input" value={selectedMorpheme}
+              onChange={(e) => setSelectedMorpheme(e.target.value)}>
+              <option value="">— தேர்வு செய்க —</option>
+              {verbMorphemes.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.display_form} — "{m.poem_lines?.raw_text}"
+                </option>
+              ))}
+            </select>
+          ) : (
+            <select className="input" value={selectedGroup}
+              onChange={(e) => setSelectedGroup(e.target.value)}>
+              <option value="">— தேர்வு செய்க —</option>
+              {verbGroups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.combined_display_form} — "{g.poem_lines?.raw_text}"
+                </option>
+              ))}
+            </select>
+          )}
+          {targetType === 'group' && verbGroups.length === 0 && (
+            <p className="text-xs text-gray-400 mt-1">
+              Word Groups பக்கத்தில் "முழுச் சொல் வினைச்சொல்" எனத் தேர்வு செய்யப்பட்ட தொகுப்புகள் இங்கே தோன்றும்.
+            </p>
+          )}
         </div>
 
         <div>
@@ -129,7 +178,7 @@ export default function AdminVerbAnalysis() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 text-left text-gray-500">
-              <th className="py-2 pr-4">Morpheme</th>
+              <th className="py-2 pr-4">Target</th>
               <th className="py-2 pr-4">Analysis</th>
               <th className="py-2">Actions</th>
             </tr>
@@ -138,7 +187,8 @@ export default function AdminVerbAnalysis() {
             {rows.map((row) => (
               <tr key={row.id} className="border-b border-gray-50 hover:bg-cream/50">
                 <td className="py-3 pr-4 font-bold font-tamil text-primary">
-                  {row.morphemes?.display_form}
+                  {row.morphemes?.display_form || row.word_groups?.combined_display_form}
+                  {row.word_group_id && <span className="ml-1 text-[10px] text-gold align-middle">(group)</span>}
                 </td>
                 <td className="py-3 pr-4 text-gray-600">
                   {row.analysis.map((a) => a.part).join(' + ')}

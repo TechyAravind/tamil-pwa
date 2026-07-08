@@ -10,6 +10,7 @@ const NAV = [
   { to: '/admin/poemlines',  label: 'Poem Lines (வரிகள்)' },
   { to: '/admin/morphemes',  label: 'Morphemes (சொல் பகுப்பு)' },
   { to: '/admin/verbanalysis', label: 'Verb Analysis (பகுபதம்)' },
+  { to: '/admin/sandhirules', label: 'Sandhi Rules (புணர்ச்சி)' },
   { to: '/admin/literary',   label: 'Literary Notes (இலக்கிய நயம்)' }
 ]
 

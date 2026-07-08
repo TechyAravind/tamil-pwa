@@ -3,11 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { supabase } from './supabase'
 import useStore from './store/useStore'
 
-// ── Platform pages ────────────────────────────────────────────────────────────
+// -- Platform pages -----------------------------------------------------------
 import LangfluencerPage from './pages/LangfluencerPage'
 import SubjectPage      from './pages/SubjectPage'
 
-// ── Student pages (11th Tamil) ────────────────────────────────────────────────
+// -- Student pages (11th Tamil) -------------------------------------------------
 import LandingPage    from './pages/LandingPage'
 import TOCPage        from './pages/TOCPage'
 import TopicPage      from './pages/TopicPage'
@@ -16,8 +16,9 @@ import PoemPage       from './pages/PoemPage'
 import StudyPage          from './pages/StudyPage'
 import QuizPage           from './pages/QuizPage'
 import ProseContentPage   from './pages/ProseContentPage'
+import GrammarNotePage    from './pages/GrammarNotePage'
 
-// ── Admin pages ───────────────────────────────────────────────────────────────
+// -- Admin pages ----------------------------------------------------------------
 import AdminLogin     from './pages/admin/LoginPage'
 import AdminLayout    from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/Dashboard'
@@ -27,6 +28,7 @@ import AdminPages     from './pages/admin/AdminPages'
 import AdminPoemLines from './pages/admin/AdminPoemLines'
 import AdminMorphemes from './pages/admin/AdminMorphemes'
 import AdminVerbAnalysis  from './pages/admin/AdminVerbAnalysis'
+import AdminSandhiRules   from './pages/admin/AdminSandhiRules'
 import AdminLiteraryNotes from './pages/admin/AdminLiteraryNotes'
 import AdminProseContent  from './pages/admin/AdminProseContent'
 
@@ -52,21 +54,22 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ── Langfluencer platform (root) ──────────────────────────────── */}
+        {/* Langfluencer platform (root) */}
         <Route path="/"                      element={<LangfluencerPage />} />
         <Route path="/subject/:subjectId"    element={<SubjectPage />} />
 
-        {/* ── 11th Tamil app ────────────────────────────────────────────── */}
+        {/* 11th Tamil app */}
         <Route path="/tamil/11"                        element={<LandingPage />} />
         <Route path="/toc"                             element={<TOCPage />} />
         <Route path="/topic/:topicId"                  element={<TopicPage />} />
         <Route path="/topic/:topicId/poem"             element={<PoemPage />} />
         <Route path="/topic/:topicId/prose-content"   element={<ProseContentPage />} />
+        <Route path="/ilakkanam-kurippu/:label"        element={<GrammarNotePage />} />
         <Route path="/topic/:topicId/study"            element={<StudyPage />} />
         <Route path="/topic/:topicId/quiz"             element={<QuizPage />} />
         <Route path="/topic/:topicId/:pageType"        element={<ProsePage />} />
 
-        {/* ── Admin routes ──────────────────────────────────────────────── */}
+        {/* Admin routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={
           <ProtectedRoute><AdminLayout /></ProtectedRoute>
@@ -78,11 +81,12 @@ export default function App() {
           <Route path="poemlines"    element={<AdminPoemLines />} />
           <Route path="morphemes"    element={<AdminMorphemes />} />
           <Route path="verbanalysis" element={<AdminVerbAnalysis />} />
+          <Route path="sandhirules"  element={<AdminSandhiRules />} />
           <Route path="literary"     element={<AdminLiteraryNotes />} />
           <Route path="prose"        element={<AdminProseContent />} />
         </Route>
 
-        {/* ── Fallback ──────────────────────────────────────────────────── */}
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

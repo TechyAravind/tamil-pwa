@@ -1,13 +1,21 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import PoemLineAccordion from '../components/PoemLineAccordion'
 import { supabase } from '../supabase'
 
 const TABS = [
   { id: 'meaning', label: 'சொல் பொருள்' },
-  { id: 'grammar', label: 'இலக்கணம்' },
+  { id: 'grammar', label: 'இலக்கணக்குறிப்பு' },
+  { id: 'sandhi',  label: 'இலக்கணம்' },
   { id: 'literary', label: 'இலக்கிய நயம்' }
+]
+
+const POS_LEGEND = [
+  { short: 'பெ', label: 'பெயர்ச்சொல்',  color: 'text-pos-noun',     bg: 'bg-blue-50 border-blue-200',   route: 'peyarchol' },
+  { short: 'வி', label: 'வினைச்சொல்',  color: 'text-pos-verb',     bg: 'bg-green-50 border-green-200', route: 'vinaichol' },
+  { short: 'இ',  label: 'இடைச்சொல்',   color: 'text-pos-particle', bg: 'bg-yellow-50 border-yellow-200', route: 'idaichol' },
+  { short: 'உ',  label: 'உரிச்சொல்',   color: 'text-pos-uri',      bg: 'bg-purple-50 border-purple-200', route: 'urichol' }
 ]
 
 export default function PoemPage() {
@@ -15,7 +23,9 @@ export default function PoemPage() {
   const [activeTab, setActiveTab] = useState('meaning')
   const [topic, setTopic]         = useState(null)
   const [lines, setLines]         = useState([])
-  const [verbAnalysisMap, setVerbAnalysisMap] = useState({})  // morphemeId → analysis object
+  const [verbAnalysisMap, setVerbAnalysisMap]           = useState({})  // morphemeId  -> analysis object
+  const [groupVerbAnalysisMap, setGroupVerbAnalysisMap] = useState({})  // wordGroupId -> analysis object
+  const [sandhiRulesMap, setSandhiRulesMap]             = useState({})  // wordGroupId -> { connectorIndex: rule }
   const [literaryNotes, setLiteraryNotes] = useState([])
   const [loading, setLoading]     = useState(true)
 
@@ -38,14 +48,18 @@ export default function PoemPage() {
 
       const pageId = pageData.id
 
-      // 3. Get poem lines + their morphemes in one query
+      // 3. Get poem lines + their morphemes + word groups in one query
       const { data: linesData } = await supabase
         .from('poem_lines')
         .select(`
           id, line_number, raw_text,
           morphemes (
             id, position, display_form, word_meaning,
-            grammatical_label, is_verb, is_separator
+            grammatical_label, is_verb, is_separator, word_group_id
+          ),
+          word_groups (
+            id, position, combined_display_form, combined_meaning,
+            combined_grammatical_label, combined_is_verb
           )
         `)
         .eq('page_id', pageId)
@@ -53,7 +67,10 @@ export default function PoemPage() {
 
       setLines(linesData || [])
 
-      // 4. Collect all verb morpheme IDs, fetch their analyses
+      const allGroups = (linesData || []).flatMap((l) => l.word_groups || [])
+      const groupIds  = allGroups.map((g) => g.id)
+
+      // 4a. Per-morpheme verb analyses (பகுபத உறுப்பிலக்கணம் for individual chips)
       const verbIds = (linesData || [])
         .flatMap((l) => l.morphemes || [])
         .filter((m) => m.is_verb)
@@ -67,6 +84,29 @@ export default function PoemPage() {
         const map = {}
         ;(analyses || []).forEach((a) => { map[a.morpheme_id] = a })
         setVerbAnalysisMap(map)
+      }
+
+      // 4b. Per-word-group verb analyses (பகுபத உறுப்பிலக்கணம் for the combined chip)
+      if (groupIds.length > 0) {
+        const { data: groupAnalyses } = await supabase
+          .from('verb_analysis')
+          .select('word_group_id, analysis')
+          .in('word_group_id', groupIds)
+        const map = {}
+        ;(groupAnalyses || []).forEach((a) => { map[a.word_group_id] = a })
+        setGroupVerbAnalysisMap(map)
+
+        // 4c. புணர்ச்சி rules per group connector (இலக்கணம் tab)
+        const { data: rules } = await supabase
+          .from('sandhi_rules')
+          .select('word_group_id, connector_index, rule_text, before_form, after_form, changed_letter')
+          .in('word_group_id', groupIds)
+        const rulesMap = {}
+        ;(rules || []).forEach((r) => {
+          rulesMap[r.word_group_id] ||= {}
+          rulesMap[r.word_group_id][r.connector_index] = r
+        })
+        setSandhiRulesMap(rulesMap)
       }
 
       // 5. Literary notes
@@ -102,7 +142,7 @@ export default function PoemPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-3 text-base font-semibold transition-colors min-h-[48px]
+              className={`flex-1 py-3 text-sm sm:text-base font-semibold transition-colors min-h-[48px]
                 border-b-2 ${activeTab === tab.id
                   ? 'text-primary border-primary'
                   : 'text-gray-500 border-transparent hover:text-primary'
@@ -115,7 +155,7 @@ export default function PoemPage() {
       </div>
 
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-6">
-        {/* ── Tab: சொல் பொருள் ──────────────────── */}
+        {/* Tab: சொல் பொருள் */}
         {activeTab === 'meaning' && (
           <div>
             <p className="text-sm text-gray-500 mb-4">
@@ -139,25 +179,29 @@ export default function PoemPage() {
           </div>
         )}
 
-        {/* ── Tab: இலக்கணம் ─────────────────────── */}
+        {/* Tab: இலக்கணக்குறிப்பு */}
         {activeTab === 'grammar' && (
           <div>
-            {/* Legend */}
+            {/* Legend — tap an abbreviation to open its explanation page */}
             <div className="card mb-5 flex flex-wrap gap-3">
-              {[
-                { short: 'பெ', label: 'பெயர்ச்சொல்',  color: 'text-pos-noun',     bg: 'bg-blue-50 border-blue-200' },
-                { short: 'வி', label: 'வினைச்சொல்',  color: 'text-pos-verb',     bg: 'bg-green-50 border-green-200' },
-                { short: 'இ',  label: 'இடைச்சொல்',   color: 'text-pos-particle', bg: 'bg-yellow-50 border-yellow-200' },
-                { short: 'உ',  label: 'உரிச்சொல்',   color: 'text-pos-uri',      bg: 'bg-purple-50 border-purple-200' }
-              ].map((p) => (
-                <div key={p.short} className={`flex items-center gap-1.5 border rounded-lg px-2 py-1 ${p.bg}`}>
+              {POS_LEGEND.map((p) => (
+                <Link
+                  key={p.short}
+                  to={`/ilakkanam-kurippu/${p.route}`}
+                  className={`flex items-center gap-1.5 border rounded-lg px-2 py-1 ${p.bg}
+                              hover:shadow-sm active:scale-95 transition-all`}
+                >
                   <span className={`font-bold text-sm ${p.color}`}>{p.short}</span>
                   <span className="text-xs text-gray-600">= {p.label}</span>
-                </div>
+                </Link>
               ))}
-              <div className="flex items-center gap-1.5 border-2 border-green-400 rounded-lg px-2 py-1 bg-green-50">
+              <Link
+                to="/ilakkanam-kurippu/pagupatham"
+                className="flex items-center gap-1.5 border-2 border-green-400 rounded-lg px-2 py-1
+                           bg-green-50 hover:shadow-sm active:scale-95 transition-all"
+              >
                 <span className="text-xs text-gray-600">🟢 வினைச்சொல் → பகுபத உறுப்பிலக்கணம் அழுத்துக</span>
-              </div>
+              </Link>
             </div>
 
             {lines.length === 0 ? (
@@ -171,6 +215,7 @@ export default function PoemPage() {
                   key={line.id}
                   line={line}
                   verbAnalysisMap={verbAnalysisMap}
+                  groupVerbAnalysisMap={groupVerbAnalysisMap}
                   mode="grammar"
                 />
               ))
@@ -178,7 +223,31 @@ export default function PoemPage() {
           </div>
         )}
 
-        {/* ── Tab: இலக்கிய நயம் ─────────────────── */}
+        {/* Tab: இலக்கணம் (புணர்ச்சி) */}
+        {activeTab === 'sandhi' && (
+          <div>
+            <p className="text-sm text-gray-500 mb-4 font-tamil">
+              இணைப்புப் புள்ளியை அழுத்தி புணர்ச்சி விதியைப் பாருங்கள்
+            </p>
+            {lines.length === 0 ? (
+              <div className="card text-center text-gray-400 py-12">
+                <p className="text-4xl mb-3">🔗</p>
+                <p>செய்யுள் வரிகள் சேர்க்கப்படவில்லை</p>
+              </div>
+            ) : (
+              lines.map((line) => (
+                <PoemLineAccordion
+                  key={line.id}
+                  line={line}
+                  sandhiRulesMap={sandhiRulesMap}
+                  mode="sandhi"
+                />
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Tab: இலக்கிய நயம் */}
         {activeTab === 'literary' && (
           <div>
             {literaryNotes.length === 0 ? (
