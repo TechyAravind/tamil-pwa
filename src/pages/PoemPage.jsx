@@ -217,6 +217,7 @@ export default function PoemPage() {
                   line={line}
                   verbAnalysisMap={verbAnalysisMap}
                   groupVerbAnalysisMap={groupVerbAnalysisMap}
+                  sandhiRulesMap={sandhiRulesMap}
                   mode="grammar"
                 />
               ))

@@ -41,6 +41,7 @@ export default function PoemLineAccordion({
           verbAnalysisMap={verbAnalysisMap}
           groupVerbAnalysisMap={groupVerbAnalysisMap || {}}
           soloAnalysis={soloMorpheme?.is_verb ? verbAnalysisMap?.[soloMorpheme.id] : null}
+          rulesForGroup={rulesForGroup(group.id)}
         />
       )
     }

@@ -1,14 +1,6 @@
 import { useRef, useState, useCallback } from 'react'
 import MorphemePopup from './MorphemePopup'
 
-// ── Part-of-speech config ─────────────────────────────────────────────────
-const POS_CONFIG = {
-  'பெயர்ச்சொல்': { short: 'பெ', color: 'text-pos-noun',     bg: 'bg-blue-50',   border: 'border-blue-200' },
-  'வினைச்சொல்':  { short: 'வி', color: 'text-pos-verb',     bg: 'bg-green-50',  border: 'border-green-200' },
-  'இடைச்சொல்':   { short: 'இ',  color: 'text-pos-particle', bg: 'bg-yellow-50', border: 'border-yellow-200' },
-  'உரிச்சொல்':   { short: 'உ',  color: 'text-pos-uri',      bg: 'bg-purple-50', border: 'border-purple-200' }
-}
-
 // How long (ms) to wait after cursor leaves before hiding.
 // This is the bridge time that lets the cursor travel from chip to popup
 // without the popup blinking out.
@@ -17,8 +9,11 @@ const HIDE_DELAY = 120
 /**
  * MorphemeChip — a single interactive morpheme token.
  *
- * mode = 'meaning' (சொல் பொருள் tab)  → shows word meaning popup on all chips
- * mode = 'grammar' (இலக்கணம் tab)     → shows POS label; verb chips show பகுபதம் popup
+ * mode = 'meaning' (சொல் பொருள் tab) → tap shows word meaning popup
+ * mode = 'grammar' (சொல் வகை tab)    → tap shows word-classification popup;
+ *                                       verb chips get a button inside that
+ *                                       popup to drill into the பகுபத
+ *                                       உறுப்பிலக்கணம் breakdown
  *
  * ── Desktop behaviour ──
  *   mouseenter chip  → popup appears immediately
@@ -35,6 +30,10 @@ const HIDE_DELAY = 120
  */
 export default function MorphemeChip({ morpheme, verbAnalysis, mode = 'meaning' }) {
   const [popupOpen, setPopupOpen] = useState(false)
+  // சொல் வகை tab: tapping a chip opens its word-classification first;
+  // verb chips get a button inside that popup to drill into the detailed
+  // பகுபத உறுப்பிலக்கணம் breakdown as a second step.
+  const [popupView, setPopupView] = useState('classification')
   const chipRef    = useRef(null)
   const hideTimer  = useRef(null)
 
@@ -56,13 +55,15 @@ export default function MorphemeChip({ morpheme, verbAnalysis, mode = 'meaning' 
   }
 
   // Is this chip interactive? (has content to show in a popup)
+  // Grammar-mode chips are interactive whenever a word classification or a
+  // verb breakdown exists. An in-progress merged unit (mid-combine) has
+  // neither, so it is deliberately not tappable.
   const isInteractive =
     mode === 'meaning'
       ? !!morpheme.word_meaning
-      : mode === 'grammar' && morpheme.is_verb
+      : mode === 'grammar' && !!(morpheme.grammatical_label || morpheme.is_verb)
 
-  const popupMode  = mode === 'meaning' ? 'meaning' : 'verb'
-  const posConfig  = POS_CONFIG[morpheme.grammatical_label] || {}
+  const popupMode  = mode === 'meaning' ? 'meaning' : popupView
 
   // ── Shared timer helpers (used by both chip and popup) ────────────────
 
@@ -101,13 +102,18 @@ export default function MorphemeChip({ morpheme, verbAnalysis, mode = 'meaning' 
     setPopupOpen((v) => !v)
   }
 
-  // Close popup immediately (X button, overlay tap)
+  // Close popup immediately (X button, overlay tap) — also resets the
+  // classification/verb sub-view so it re-opens fresh next time.
   const closeNow = useCallback(() => {
     clearTimeout(hideTimer.current)
     setPopupOpen(false)
+    setPopupView('classification')
   }, [])
 
   // ── Chip appearance ───────────────────────────────────────────────────
+  // Same neutral look in every mode — சொல் பொருள் and சொல் வகை boxes must
+  // be visually identical (no POS colour-coding / green verb ring), the
+  // classification now lives inside the tap popup instead.
 
   const chipBase = `
     inline-flex flex-col items-center px-2 py-1 rounded-md
@@ -118,13 +124,7 @@ export default function MorphemeChip({ morpheme, verbAnalysis, mode = 'meaning' 
     ? 'cursor-pointer hover:border-primary hover:bg-primary/5 hover:shadow-sm active:scale-95'
     : 'cursor-default'
 
-  const chipColor = mode === 'grammar' && morpheme.grammatical_label
-    ? `${posConfig.bg || 'bg-cream'} ${posConfig.border || 'border-gray-200'}`
-    : 'bg-cream border-gray-200'
-
-  const verbRing = mode === 'grammar' && morpheme.is_verb
-    ? 'ring-2 ring-green-400 ring-offset-1'
-    : ''
+  const chipColor = 'bg-cream border-gray-200'
 
   return (
     <span className="relative inline-block">
@@ -134,7 +134,7 @@ export default function MorphemeChip({ morpheme, verbAnalysis, mode = 'meaning' 
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`${chipBase} ${chipInteractive} ${chipColor} ${verbRing}`}
+        className={`${chipBase} ${chipInteractive} ${chipColor}`}
         role={isInteractive ? 'button' : undefined}
         tabIndex={isInteractive ? 0 : undefined}
         aria-expanded={isInteractive ? popupOpen : undefined}
@@ -143,13 +143,6 @@ export default function MorphemeChip({ morpheme, verbAnalysis, mode = 'meaning' 
           : undefined
         }
       >
-        {/* POS label above morpheme text (grammar tab only) */}
-        {mode === 'grammar' && morpheme.grammatical_label && (
-          <span className={`text-xs font-bold leading-none mb-1 ${posConfig.color || 'text-gray-400'}`}>
-            {posConfig.short}
-          </span>
-        )}
-
         {/* Morpheme text */}
         <span className="text-gray-900 font-medium text-base leading-none">
           {morpheme.display_form}
@@ -167,6 +160,8 @@ export default function MorphemeChip({ morpheme, verbAnalysis, mode = 'meaning' 
           onMouseEnter={cancelHide}   // cursor entered popup → cancel hide timer
           onMouseLeave={scheduleHide} // cursor left popup  → restart hide timer
           isMouseDevice={isMouseDevice}
+          onShowVerbAnalysis={() => setPopupView('verb')}
+          onBackToClassification={() => setPopupView('classification')}
         />
       )}
     </span>

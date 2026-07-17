@@ -22,6 +22,8 @@ export default function MorphemePopup({
   onMouseEnter,   // called when cursor enters popup (cancels hide timer)
   onMouseLeave,   // called when cursor leaves popup (restarts hide timer)
   isMouseDevice,  // true = desktop hover mode, false = touch tap mode
+  onShowVerbAnalysis,      // சொல் வகை tab: switch this popup to the verb breakdown
+  onBackToClassification,  // verb breakdown: switch back to classification
 }) {
   const popupRef = useRef(null)
 
@@ -101,9 +103,41 @@ export default function MorphemePopup({
           </div>
         )}
 
-        {/* ── இலக்கணம் tab mode — பகுபத உறுப்பிலக்கணம் ── */}
+        {/* ── சொல் வகை tab mode — word classification ── */}
+        {mode === 'classification' && (
+          <div>
+            <p className="text-xs text-gold font-bold uppercase tracking-widest mb-2">
+              சொல் வகை
+            </p>
+            <p className="text-gray-800 leading-relaxed font-tamil text-base">
+              {morpheme.grammatical_label || 'சொல் வகை சேர்க்கப்படவில்லை'}
+            </p>
+
+            {morpheme.is_verb && verbAnalysis && (
+              <button
+                type="button"
+                onClick={onShowVerbAnalysis}
+                className="mt-4 text-sm text-primary font-semibold hover:underline
+                           underline-offset-2 font-tamil"
+              >
+                பகுபத உறுப்பிலக்கணம் காண →
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* ── சொல் வகை tab mode — பகுபத உறுப்பிலக்கணம் (verb drill-down) ── */}
         {mode === 'verb' && verbAnalysis && (
           <div>
+            {onBackToClassification && (
+              <button
+                type="button"
+                onClick={onBackToClassification}
+                className="text-xs text-gray-400 hover:text-primary mb-3 font-tamil"
+              >
+                ← சொல் வகை
+              </button>
+            )}
             <p className="text-xs text-gold font-bold uppercase tracking-widest mb-2">
               பகுபத உறுப்பிலக்கணம்
             </p>

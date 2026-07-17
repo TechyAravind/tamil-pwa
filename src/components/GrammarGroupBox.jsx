@@ -3,7 +3,11 @@ import MorphemeChip from './MorphemeChip'
 import DraggableCombineUnit from './DraggableCombineUnit'
 import useSequentialCombine from '../hooks/useSequentialCombine'
 
-export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, groupVerbAnalysisMap, soloAnalysis }) {
+// சொல் வகை tab — same box-in-box look and staged-combine interaction as
+// the சொல் பொருள் tab (WordGroupBox). The only difference is what a tap on
+// a chip shows: word classification (grammatical_label) instead of meaning,
+// via mode="grammar" on MorphemeChip.
+export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, groupVerbAnalysisMap, soloAnalysis, rulesForGroup }) {
   const units = morphemes.filter((m) => !m.is_separator)
   const connectorCount = Math.max(units.length - 1, 0)
 
@@ -11,6 +15,8 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
     useSequentialCombine(connectorCount)
 
   const [dragging, setDragging] = useState(false)
+
+  const handleCombinedActivate = registerTapForDoubleTap
 
   // See WordGroupBox.jsx for rationale: a solo word (connectorCount === 0)
   // is trivially "fullyCombined" and must not get the primary-highlighted
@@ -38,14 +44,14 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
     return (
       <span className={boxClasses}>
         <span
-          onClick={registerTapForDoubleTap}
+          onClick={handleCombinedActivate}
           onDoubleClick={reset}
           title="இரு முறை அழுத்தி/சொடுக்கி பிரிக்கவும்"
         >
           <MorphemeChip
             morpheme={combinedMorpheme}
             mode="grammar"
-            verbAnalysis={group.combined_is_verb ? (soloAnalysis || groupVerbAnalysisMap[group.id]) : null}
+            verbAnalysis={group.combined_is_verb ? (soloAnalysis || groupVerbAnalysisMap?.[group.id]) : null}
           />
         </span>
         {connectorCount > 0 && (
@@ -63,9 +69,28 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
     )
   }
 
+  // ── Staged merging ──────────────────────────────────────────────────────
+  // Same as WordGroupBox: fold the first `combineStep` connectors into one
+  // intermediate chip before the next connector can be tapped. An
+  // in-progress merged word is not a real morpheme, so it deliberately gets
+  // NO grammatical_label / is_verb — it is not tappable (nothing to show).
+  let displayUnits = units
+  if (combineStep > 0) {
+    const merged = { ...units[0] }
+    for (let i = 0; i < combineStep; i++) {
+      const rule = rulesForGroup?.[i]
+      const nextUnit = units[i + 1]
+      merged.display_form = rule?.after_form || `${merged.display_form}${nextUnit.display_form}`
+      merged.grammatical_label = null
+      merged.is_verb = false
+      merged.id = `${merged.id}+${nextUnit.id}`
+    }
+    displayUnits = [merged, ...units.slice(combineStep + 1)]
+  }
+
   return (
     <span className={boxClasses}>
-      {units.map((unit, i) => {
+      {displayUnits.map((unit, di) => {
         const chip = (
           <MorphemeChip
             morpheme={unit}
@@ -73,7 +98,9 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
             mode="grammar"
           />
         )
-        const isDraggable = i === combineStep + 1
+        const isDraggable = di === 1
+        const connectorIndex = combineStep + di
+        const hasConnector = connectorIndex < connectorCount
 
         return (
           <span key={unit.id} className="inline-flex items-end">
@@ -87,14 +114,14 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
               </DraggableCombineUnit>
             ) : chip}
 
-            {i < connectorCount && (
+            {hasConnector && (
               <button
                 type="button"
-                disabled={i !== combineStep}
-                onClick={() => advance(i)}
+                disabled={connectorIndex !== combineStep}
+                onClick={() => advance(connectorIndex)}
                 aria-label="இணை"
                 className={`mx-0.5 mb-2 w-6 h-6 rounded-full text-sm font-bold transition-all
-                  ${i === combineStep
+                  ${connectorIndex === combineStep
                     ? 'bg-primary text-white hover:bg-primary/90 active:scale-90 animate-pulse cursor-pointer'
                     : 'bg-gray-100 text-gray-300 cursor-default'}
                 `}
