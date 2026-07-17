@@ -12,10 +12,16 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
 
   const [dragging, setDragging] = useState(false)
 
+  // See WordGroupBox.jsx for rationale: a solo word (connectorCount === 0)
+  // is trivially "fullyCombined" and must not get the primary-highlighted
+  // "just combined" look — only keep that for words the user actually
+  // merged through the connectors.
+  const isActuallyCombined = fullyCombined && connectorCount > 0
+
   const boxClasses = `
     inline-flex items-end gap-0 px-2 py-1.5 mr-2 mb-2 rounded-xl border-2
     transition-colors
-    ${fullyCombined ? 'border-primary/60 bg-primary/5'
+    ${isActuallyCombined ? 'border-primary/60 bg-primary/5'
       : dragging ? 'border-primary bg-primary/5'
       : 'border-gray-300 bg-white/60'}
   `

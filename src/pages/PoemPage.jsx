@@ -6,8 +6,8 @@ import { supabase } from '../supabase'
 
 const TABS = [
   { id: 'meaning', label: 'சொல் பொருள்' },
-  { id: 'grammar', label: 'இலக்கணக்குறிப்பு' },
-  { id: 'sandhi',  label: 'இலக்கணம்' },
+  { id: 'grammar', label: 'சொல் வகை' },
+  { id: 'sandhi',  label: 'சொற்களின் புணர்ச்சி' },
   { id: 'literary', label: 'இலக்கிய நயம்' }
 ]
 
@@ -172,6 +172,7 @@ export default function PoemPage() {
                   key={line.id}
                   line={line}
                   verbAnalysisMap={verbAnalysisMap}
+                  sandhiRulesMap={sandhiRulesMap}
                   mode="meaning"
                 />
               ))

@@ -7,6 +7,7 @@ import SandhiGroupBox from './SandhiGroupBox'
 export default function PoemLineAccordion({
   line, verbAnalysisMap, groupVerbAnalysisMap, sandhiRulesMap, mode
 }) {
+  const rulesForGroup = (id) => sandhiRulesMap?.[id]
   const [open, setOpen] = useState(false)
 
   const morphemes = [...(line.morphemes || [])].sort((a, b) => a.position - b.position)
@@ -27,6 +28,7 @@ export default function PoemLineAccordion({
           group={group}
           morphemes={groupMorphemes}
           verbAnalysisMap={verbAnalysisMap}
+          rulesForGroup={rulesForGroup(group.id)}
         />
       )
     }
