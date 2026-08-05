@@ -34,6 +34,7 @@ export default function PhysicsChapterPage() {
   const navigate       = useNavigate()
   const [chapter, setChapter]     = useState(null)
   const [groupName, setGroupName] = useState('')
+  const [groupId, setGroupId]     = useState(null)
   const [subtopics, setSubtopics] = useState([])
   const [activeTab, setActiveTab] = useState('theory')
   const [loading, setLoading]     = useState(true)
@@ -47,6 +48,7 @@ export default function PhysicsChapterPage() {
         .single()
       setChapter(chapterData)
       setGroupName(chapterData?.physics_groups?.name || '')
+      setGroupId(chapterData?.group_id || null)
 
       const { data: subtopicData } = await supabase
         .from('physics_subtopics')
@@ -61,13 +63,20 @@ export default function PhysicsChapterPage() {
 
   const tree = buildTree(subtopics)
 
+  // Always resolve to the TOC page for this chapter's group — never rely on
+  // browser history (navigate(-1)), which can ping-pong between this page
+  // and a subtopic page when they're reached via different navigation paths.
+  const goToTOC = () => {
+    navigate(groupId ? `/physics/classical/11/content/${groupId}` : '/physics/classical/11/content')
+  }
+
   return (
     <div className="min-h-screen bg-cream flex flex-col">
       <header className="sticky top-0 z-30 bg-gradient-to-r from-[#4A235A] to-[#8E44AD] text-white shadow-md">
         <div className="flex items-center h-14 px-4 gap-3 max-w-2xl mx-auto">
           <button
-            onClick={() => navigate(-1)}
-            aria-label="Back"
+            onClick={goToTOC}
+            aria-label="Back to Table of Contents"
             className="min-w-[44px] min-h-[44px] flex items-center justify-center
                        rounded-lg hover:bg-white/10 active:bg-white/20 transition-colors text-xl"
           >
@@ -78,9 +87,18 @@ export default function PhysicsChapterPage() {
       </header>
 
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-6">
-        <p className="text-sm text-[#8E44AD] font-semibold mb-1 uppercase tracking-wide">
-          {groupName}
-        </p>
+        <div className="flex items-center justify-between gap-3 mb-1">
+          <p className="text-sm text-[#8E44AD] font-semibold uppercase tracking-wide">
+            {groupName}
+          </p>
+          <button
+            onClick={goToTOC}
+            className="text-xs font-semibold text-[#8E44AD] hover:text-[#6b3384]
+                       flex items-center gap-1 shrink-0 min-h-[32px] px-1"
+          >
+            ← All Chapters
+          </button>
+        </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-6">{chapter?.title}</h2>
 
         {/* Tab strip */}
