@@ -1,3 +1,4 @@
+
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabase'
 
@@ -11,7 +12,11 @@ const NAV = [
   { to: '/admin/morphemes',  label: 'Morphemes (சொல் பகுப்பு)' },
   { to: '/admin/verbanalysis', label: 'Verb Analysis (பகுபதம்)' },
   { to: '/admin/sandhirules', label: 'Sandhi Rules (புணர்ச்சி)' },
-  { to: '/admin/literary',   label: 'Literary Notes (இலக்கிய நயம்)' }
+  { to: '/admin/literary',   label: 'Literary Notes (இலக்கிய நயம்)' },
+  { to: '/admin/physics-groups',    label: 'Physics — Groups' },
+  { to: '/admin/physics-chapters',  label: 'Physics — Chapters' },
+  { to: '/admin/physics-subtopics', label: 'Physics — Subtopics' },
+  { to: '/admin/physics-content',   label: 'Physics — Content' },
 ]
 
 export default function AdminLayout() {

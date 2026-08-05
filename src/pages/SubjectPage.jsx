@@ -22,6 +22,16 @@ const SUBJECT_META = {
       { id: '12', label: '12th Standard', sublabel: 'Grade 12', available: false },
     ]
   },
+  physics: {
+    label:    'Physics',
+    subtitle: 'Classical & Modern Physics',
+    icon:     '⚛️',
+    color:    'from-[#4A235A] to-[#8E44AD]',
+    classes: [
+      { id: 'classical', label: 'Classical Physics', sublabel: '11th & 12th Standard', available: true  },
+      { id: 'modern',    label: 'Modern Physics',     sublabel: 'Coming later',        available: false },
+    ]
+  },
 }
 
 // Fallback for subjects not in SUBJECT_META
@@ -38,7 +48,8 @@ const defaultMeta = (id) => ({
 
 // Route for each available class
 const CLASS_ROUTES = {
-  tamil: { '11': '/tamil/11' }
+  tamil:   { '11': '/tamil/11' },
+  physics: { classical: '/physics/classical' }
 }
 
 export default function SubjectPage() {

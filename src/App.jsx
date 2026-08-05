@@ -18,6 +18,14 @@ import QuizPage           from './pages/QuizPage'
 import ProseContentPage   from './pages/ProseContentPage'
 import GrammarNotePage    from './pages/GrammarNotePage'
 
+// -- Physics pages (Classical Physics · 11th Standard) --------------------------
+import PhysicsBranchPage    from './pages/PhysicsBranchPage'
+import PhysicsLandingPage   from './pages/PhysicsLandingPage'
+import PhysicsGroupsPage    from './pages/PhysicsGroupsPage'
+import PhysicsTOCPage       from './pages/PhysicsTOCPage'
+import PhysicsChapterPage   from './pages/PhysicsChapterPage'
+import PhysicsSubtopicPage  from './pages/PhysicsSubtopicPage'
+
 // -- Admin pages ----------------------------------------------------------------
 import AdminLogin     from './pages/admin/LoginPage'
 import AdminLayout    from './pages/admin/AdminLayout'
@@ -31,6 +39,10 @@ import AdminVerbAnalysis  from './pages/admin/AdminVerbAnalysis'
 import AdminSandhiRules   from './pages/admin/AdminSandhiRules'
 import AdminLiteraryNotes from './pages/admin/AdminLiteraryNotes'
 import AdminProseContent  from './pages/admin/AdminProseContent'
+import AdminPhysicsGroups    from './pages/admin/AdminPhysicsGroups'
+import AdminPhysicsChapters  from './pages/admin/AdminPhysicsChapters'
+import AdminPhysicsSubtopics from './pages/admin/AdminPhysicsSubtopics'
+import AdminPhysicsContent   from './pages/admin/AdminPhysicsContent'
 
 // Guard: redirect to login if not authenticated
 function ProtectedRoute({ children }) {
@@ -69,6 +81,14 @@ export default function App() {
         <Route path="/topic/:topicId/quiz"             element={<QuizPage />} />
         <Route path="/topic/:topicId/:pageType"        element={<ProsePage />} />
 
+        {/* Physics (Classical Physics · 11th Standard) */}
+        <Route path="/physics/classical"                              element={<PhysicsBranchPage />} />
+        <Route path="/physics/classical/11"                           element={<PhysicsLandingPage />} />
+        <Route path="/physics/classical/11/content"                  element={<PhysicsGroupsPage />} />
+        <Route path="/physics/classical/11/content/:groupId"         element={<PhysicsTOCPage />} />
+        <Route path="/physics/chapter/:chapterId"                     element={<PhysicsChapterPage />} />
+        <Route path="/physics/chapter/:chapterId/subtopic/:subtopicId" element={<PhysicsSubtopicPage />} />
+
         {/* Admin routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={
@@ -84,6 +104,10 @@ export default function App() {
           <Route path="sandhirules"  element={<AdminSandhiRules />} />
           <Route path="literary"     element={<AdminLiteraryNotes />} />
           <Route path="prose"        element={<AdminProseContent />} />
+          <Route path="physics-groups"    element={<AdminPhysicsGroups />} />
+          <Route path="physics-chapters"  element={<AdminPhysicsChapters />} />
+          <Route path="physics-subtopics" element={<AdminPhysicsSubtopics />} />
+          <Route path="physics-content"   element={<AdminPhysicsContent />} />
         </Route>
 
         {/* Fallback */}

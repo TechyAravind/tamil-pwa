@@ -2,23 +2,13 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { supabase } from '../supabase'
+import { toEmbedUrl } from '../utils/embedUrl'
 
 // ── Tab config ────────────────────────────────────────────────────────────────
 const STUDY_TABS = [
   { id: 'audio', label: 'ஒலிப்பதிவு', icon: '🎙' },
   { id: 'video', label: 'காணொளி',     icon: '📹' },
 ]
-
-// ── Helper: convert YouTube watch / short URL → embed URL ────────────────────
-function toEmbedUrl(url) {
-  if (!url) return null
-  if (url.includes('youtube.com/embed/')) return url
-  const short = url.match(/youtu\.be\/([^?&]+)/)
-  if (short) return `https://www.youtube.com/embed/${short[1]}`
-  const watch = url.match(/[?&]v=([^&]+)/)
-  if (watch) return `https://www.youtube.com/embed/${watch[1]}`
-  return url
-}
 
 // ── Audio Card ────────────────────────────────────────────────────────────────
 function AudioCard({ card }) {

@@ -5,7 +5,7 @@ const SUBJECTS = [
   { id: 'tamil',       label: 'தமிழ்',        icon: '🪔', color: 'from-[#8B0000] to-[#C0392B]', available: true  },
   { id: 'english',     label: 'English',       icon: '📖', color: 'from-[#1A5276] to-[#2980B9]', available: false },
   { id: 'maths',       label: 'Mathematics',   icon: '📐', color: 'from-[#145A32] to-[#27AE60]', available: false },
-  { id: 'physics',     label: 'Physics',       icon: '⚛️', color: 'from-[#4A235A] to-[#8E44AD]', available: false },
+  { id: 'physics',     label: 'Physics',       icon: '⚛️', color: 'from-[#4A235A] to-[#8E44AD]', available: true  },
   { id: 'chemistry',   label: 'Chemistry',     icon: '🧪', color: 'from-[#784212] to-[#CA6F1E]', available: false },
   { id: 'biology',     label: 'Biology',       icon: '🌿', color: 'from-[#0B5345] to-[#1ABC9C]', available: false },
   { id: 'economics',   label: 'Economics',     icon: '📊', color: 'from-[#1B2631] to-[#2C3E50]', available: false },
