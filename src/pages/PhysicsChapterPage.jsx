@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
+import { isLessonComplete } from '../utils/lessonProgress'
 
 const CHAPTER_TABS = [
   { id: 'theory',      label: 'Theory (Full Portion)', icon: '📘' },
@@ -36,6 +37,7 @@ export default function PhysicsChapterPage() {
   const [groupName, setGroupName] = useState('')
   const [groupId, setGroupId]     = useState(null)
   const [subtopics, setSubtopics] = useState([])
+  const [ipLessons, setIpLessons] = useState([])
   const [activeTab, setActiveTab] = useState('theory')
   const [loading, setLoading]     = useState(true)
 
@@ -56,6 +58,14 @@ export default function PhysicsChapterPage() {
         .eq('chapter_id', chapterId)
         .order('order_index')
       setSubtopics(subtopicData || [])
+
+      const { data: lessonData } = await supabase
+        .from('physics_ip_lessons')
+        .select('*')
+        .eq('chapter_id', chapterId)
+        .order('order_index')
+      setIpLessons(lessonData || [])
+
       setLoading(false)
     }
     load()
@@ -163,8 +173,45 @@ export default function PhysicsChapterPage() {
         {!loading && activeTab === 'examnotes' && (
           <ComingSoon label="Exam Notes" icon="📝" />
         )}
+
         {!loading && activeTab === 'interactive' && (
-          <ComingSoon label="Interactive Physics" icon="🧪" />
+          ipLessons.length === 0 ? (
+            <ComingSoon label="Interactive Physics" icon="🧪" />
+          ) : (
+            <div className="space-y-3">
+              <p className="text-xs text-gray-400 -mt-1 mb-2">
+                Short, story-driven lessons — a hook, a clear explanation, a worked example, then practice questions.
+              </p>
+              {ipLessons.map((lesson, i) => {
+                const done = isLessonComplete(lesson.id)
+                return (
+                  <button
+                    key={lesson.id}
+                    onClick={() => navigate(`/physics/chapter/${chapterId}/interactive/${lesson.id}`)}
+                    className="w-full text-left card flex items-center gap-4 hover:border-[#8E44AD]
+                               hover:shadow-md active:scale-[0.99] transition-all min-h-[72px]"
+                  >
+                    <span className="w-9 h-9 rounded-full bg-[#8E44AD]/10 text-[#8E44AD] font-bold
+                                     flex items-center justify-center shrink-0 text-sm">
+                      {i + 1}
+                    </span>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900">{lesson.title}</p>
+                      {lesson.hook_summary && (
+                        <p className="text-sm text-gray-500 mt-0.5">{lesson.hook_summary}</p>
+                      )}
+                    </div>
+                    {done ? (
+                      <span className="text-green-600 text-xs font-bold bg-green-50 border border-green-200
+                                       rounded-full px-2.5 py-1 shrink-0">✓ Done</span>
+                    ) : (
+                      <span className="text-gray-300 text-xl shrink-0">›</span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )
         )}
       </main>
     </div>

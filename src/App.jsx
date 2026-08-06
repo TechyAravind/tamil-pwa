@@ -25,6 +25,7 @@ import PhysicsGroupsPage    from './pages/PhysicsGroupsPage'
 import PhysicsTOCPage       from './pages/PhysicsTOCPage'
 import PhysicsChapterPage   from './pages/PhysicsChapterPage'
 import PhysicsSubtopicPage  from './pages/PhysicsSubtopicPage'
+import PhysicsInteractiveLessonPage from './pages/PhysicsInteractiveLessonPage'
 
 // -- Admin pages ----------------------------------------------------------------
 import AdminLogin     from './pages/admin/LoginPage'
@@ -88,6 +89,7 @@ export default function App() {
         <Route path="/physics/classical/11/content/:groupId"         element={<PhysicsTOCPage />} />
         <Route path="/physics/chapter/:chapterId"                     element={<PhysicsChapterPage />} />
         <Route path="/physics/chapter/:chapterId/subtopic/:subtopicId" element={<PhysicsSubtopicPage />} />
+        <Route path="/physics/chapter/:chapterId/interactive/:lessonId" element={<PhysicsInteractiveLessonPage />} />
 
         {/* Admin routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
