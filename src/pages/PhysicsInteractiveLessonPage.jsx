@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import QuestionRenderer from '../components/interactive/QuestionRenderer'
+import RichText from '../components/interactive/RichText'
+import DiagramSlot from '../components/interactive/diagrams/DiagramSlot'
+import VideoEmbed from '../components/interactive/VideoEmbed'
 import { markLessonComplete } from '../utils/lessonProgress'
+import { ui, UI_STRINGS } from '../utils/ipLang'
 
 const STEP_ICON = { motivation: '💡', explanation: '📘', example: '📝', question: '❓' }
-const STEP_LABEL = { motivation: 'Motivation', explanation: 'Explanation', example: 'Example', question: 'Question' }
 const STEP_COLOR = { motivation: 'text-amber-600', explanation: 'text-blue-600', example: 'text-purple-600', question: 'text-gray-500' }
 
 export default function PhysicsInteractiveLessonPage() {
@@ -16,6 +19,7 @@ export default function PhysicsInteractiveLessonPage() {
   const [steps, setSteps] = useState([])
   const [current, setCurrent] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [lang, setLang] = useState('en')
 
   useEffect(() => {
     async function load() {
@@ -52,6 +56,7 @@ export default function PhysicsInteractiveLessonPage() {
 
   const step = steps[current]
   const isLast = current === steps.length - 1
+  const stepLabel = (type) => (UI_STRINGS.stepLabel[type] ? (lang === 'ta' ? UI_STRINGS.stepLabel[type].ta : UI_STRINGS.stepLabel[type].en) : type)
 
   const goToChapter = () => navigate(`/physics/chapter/${chapterId}`)
 
@@ -66,6 +71,8 @@ export default function PhysicsInteractiveLessonPage() {
 
   const jumpTo = (i) => { if (i <= current) setCurrent(i) }
 
+  const title = (lang === 'ta' && lesson?.title_ta) || lesson?.title
+
   return (
     <div className="min-h-screen bg-cream flex flex-col">
       <header className="sticky top-0 z-30 bg-gradient-to-r from-[#4A235A] to-[#8E44AD] text-white shadow-md">
@@ -74,7 +81,14 @@ export default function PhysicsInteractiveLessonPage() {
             className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-xl">
             ←
           </button>
-          <h1 className="flex-1 font-bold text-lg truncate">{lesson?.title}</h1>
+          <h1 className="flex-1 font-bold text-lg truncate">{title}</h1>
+          <button
+            onClick={() => setLang((l) => (l === 'en' ? 'ta' : 'en'))}
+            className="shrink-0 text-xs font-bold border border-white/40 rounded-full px-3 py-1.5
+                       hover:bg-white/10 active:scale-95 transition-all min-h-[32px]"
+          >
+            {ui('langToggle', lang)}
+          </button>
         </div>
       </header>
 
@@ -86,7 +100,7 @@ export default function PhysicsInteractiveLessonPage() {
               key={s.id}
               onClick={() => jumpTo(i)}
               disabled={i > current}
-              title={STEP_LABEL[s.step_type]}
+              title={stepLabel(s.step_type)}
               className={`w-8 h-8 rounded-full flex items-center justify-center text-sm border-2 transition-all shrink-0
                           ${i === current ? 'border-[#8E44AD] bg-[#8E44AD] scale-110' :
                             i < current ? 'border-[#8E44AD]/50 bg-white cursor-pointer' :
@@ -104,26 +118,38 @@ export default function PhysicsInteractiveLessonPage() {
             key={step.id}
             question={step.physics_ip_questions}
             onNext={goNext}
-            nextLabel={isLast ? 'Finish Lesson' : 'Next →'}
+            nextLabel={isLast ? ui('finish', lang) : ui('next', lang)}
+            lang={lang}
           />
         ) : (
           <div className="card">
             <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${STEP_COLOR[step.step_type]}`}>
-              {STEP_LABEL[step.step_type]}
+              {stepLabel(step.step_type)}
             </p>
-            {step.title && <h2 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h2>}
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-base">{step.body_text}</p>
-            {step.diagram_note && (
+            {step.title && (
+              <h2 className="text-xl font-bold text-gray-900 mb-3">
+                <RichText text={(lang === 'ta' && step.title_ta) || step.title} />
+              </h2>
+            )}
+            <div className="text-gray-700 leading-relaxed text-base">
+              <RichText text={(lang === 'ta' && step.body_text_ta) || step.body_text} />
+            </div>
+
+            <DiagramSlot diagramKey={step.diagram_key} />
+            <VideoEmbed url={step.video_url} />
+
+            {!step.diagram_key && !step.video_url && step.diagram_note && (
               <div className="mt-4 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center text-xs text-gray-400">
-                🎬 Diagram/animation placeholder — {step.diagram_note}
+                🎬 {(lang === 'ta' && step.diagram_note_ta) || step.diagram_note}
               </div>
             )}
+
             <button
               onClick={goNext}
               className="mt-5 bg-[#8E44AD] text-white text-sm font-bold px-6 py-2.5 rounded-lg
                          hover:bg-[#9B59B6] active:scale-95 transition-all min-h-[44px]"
             >
-              {isLast ? 'Finish Lesson' : 'Next →'}
+              {isLast ? ui('finish', lang) : ui('next', lang)}
             </button>
           </div>
         )}

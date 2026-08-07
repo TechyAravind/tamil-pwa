@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import QuestionFeedback from './QuestionFeedback'
+import RichText from './RichText'
+import { ui } from '../../utils/ipLang'
 
-export default function McqQuestion({ question, onNext, nextLabel }) {
-  const { options, correct_index } = question.data
+export default function McqQuestion({ question, onNext, nextLabel, lang = 'en' }) {
+  const { correct_index } = question.data
+  const options = (lang === 'ta' && question.data_ta?.options) || question.data.options
   const [picked, setPicked] = useState(null)
   const [submitted, setSubmitted] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
@@ -25,7 +28,9 @@ export default function McqQuestion({ question, onNext, nextLabel }) {
 
   return (
     <div className="card">
-      <p className="text-base text-gray-800 leading-relaxed mb-4 whitespace-pre-wrap">{question.prompt_text}</p>
+      <p className="text-base text-gray-800 leading-relaxed mb-4">
+        <RichText text={(lang === 'ta' && question.prompt_text_ta) || question.prompt_text} />
+      </p>
 
       <div className="space-y-2.5">
         {options.map((opt, i) => {
@@ -47,7 +52,7 @@ export default function McqQuestion({ question, onNext, nextLabel }) {
                                text-xs font-bold text-gray-500 shrink-0">
                 {String.fromCharCode(65 + i)}
               </span>
-              <span className="text-sm text-gray-800">{opt}</span>
+              <span className="text-sm text-gray-800"><RichText text={opt} /></span>
             </button>
           )
         })}
@@ -55,15 +60,16 @@ export default function McqQuestion({ question, onNext, nextLabel }) {
 
       {!submitted && (
         <button onClick={dontKnow} className="mt-3 text-xs text-gray-400 hover:text-gray-600 underline">
-          I don't know
+          {ui('dontKnow', lang)}
         </button>
       )}
 
       <QuestionFeedback
         submitted={submitted} correct={correct} gaveUp={gaveUp}
-        explanationText={question.explanation_text} commonMistake={question.common_mistake}
+        explanationText={(lang === 'ta' && question.explanation_text_ta) || question.explanation_text}
+        commonMistake={(lang === 'ta' && question.common_mistake_ta) || question.common_mistake}
         showExplanation={showExplanation} setShowExplanation={setShowExplanation}
-        onNext={onNext} nextLabel={nextLabel}
+        onNext={onNext} nextLabel={nextLabel} lang={lang}
       />
     </div>
   )
