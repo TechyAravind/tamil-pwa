@@ -57,7 +57,7 @@ export default function FillBlankQuestion({ question, onNext, nextLabel, lang = 
           const state = submitted ? (results[i] ? 'border-green-400 bg-green-50' : 'border-red-400 bg-red-50') : 'border-gray-300'
           return (
             <div key={i}>
-              <label className="block text-xs font-semibold text-gray-500 mb-1">{b.displayLabel}</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1"><RichText text={b.displayLabel} /></label>
               {b.type === 'dropdown' ? (
                 <select
                   className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none ${state}`}
