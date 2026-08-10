@@ -86,6 +86,14 @@ export default function MarkChoicesQuestion({ question, onNext, nextLabel, lang 
         submitted={submitted} correct={correct} gaveUp={gaveUp}
         explanationText={(lang === 'ta' && question.explanation_text_ta) || question.explanation_text}
         commonMistake={(lang === 'ta' && question.common_mistake_ta) || question.common_mistake}
+        correctAnswerNode={
+          <>
+            {correct_indices.map((idx, i) => (
+              <span key={i}>{i > 0 && ', '}<RichText text={options[idx]} /></span>
+            ))}
+          </>
+        }
+        takeawayFact={(lang === 'ta' && question.takeaway_fact_ta) || question.takeaway_fact}
         showExplanation={showExplanation} setShowExplanation={setShowExplanation}
         onNext={onNext} nextLabel={nextLabel} lang={lang}
       />

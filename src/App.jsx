@@ -23,7 +23,11 @@ import PhysicsBranchPage    from './pages/PhysicsBranchPage'
 import PhysicsLandingPage   from './pages/PhysicsLandingPage'
 import PhysicsGroupsPage    from './pages/PhysicsGroupsPage'
 import PhysicsTOCPage       from './pages/PhysicsTOCPage'
-import PhysicsChapterPage   from './pages/PhysicsChapterPage'
+import PhysicsChapterLayout        from './pages/PhysicsChapterLayout'
+import PhysicsChapterTheoryPage    from './pages/PhysicsChapterTheoryPage'
+import PhysicsChapterExamNotesPage from './pages/PhysicsChapterExamNotesPage'
+import PhysicsChapterInteractivePage from './pages/PhysicsChapterInteractivePage'
+import PhysicsChapterFormulasPage  from './pages/PhysicsChapterFormulasPage'
 import PhysicsSubtopicPage  from './pages/PhysicsSubtopicPage'
 import PhysicsInteractiveLessonPage from './pages/PhysicsInteractiveLessonPage'
 
@@ -87,7 +91,13 @@ export default function App() {
         <Route path="/physics/classical/11"                           element={<PhysicsLandingPage />} />
         <Route path="/physics/classical/11/content"                  element={<PhysicsGroupsPage />} />
         <Route path="/physics/classical/11/content/:groupId"         element={<PhysicsTOCPage />} />
-        <Route path="/physics/chapter/:chapterId"                     element={<PhysicsChapterPage />} />
+        <Route path="/physics/chapter/:chapterId" element={<PhysicsChapterLayout />}>
+          <Route index               element={<Navigate to="theory" replace />} />
+          <Route path="theory"       element={<PhysicsChapterTheoryPage />} />
+          <Route path="exam-notes"   element={<PhysicsChapterExamNotesPage />} />
+          <Route path="interactive"  element={<PhysicsChapterInteractivePage />} />
+          <Route path="formulas"     element={<PhysicsChapterFormulasPage />} />
+        </Route>
         <Route path="/physics/chapter/:chapterId/subtopic/:subtopicId" element={<PhysicsSubtopicPage />} />
         <Route path="/physics/chapter/:chapterId/interactive/:lessonId" element={<PhysicsInteractiveLessonPage />} />
 

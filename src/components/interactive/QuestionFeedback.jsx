@@ -5,7 +5,7 @@ import { ui } from '../../utils/ipLang'
 // Show/Hide explanation toggle (with "Common mistake" callout),
 // and the Next button that advances the lesson stepper.
 export default function QuestionFeedback({
-  submitted, correct, explanationText, commonMistake,
+  submitted, correct, explanationText, commonMistake, correctAnswerNode, takeawayFact,
   showExplanation, setShowExplanation, onNext, gaveUp, nextLabel, lang = 'en',
 }) {
   if (!submitted) return null
@@ -16,6 +16,23 @@ export default function QuestionFeedback({
       <p className={`font-bold text-base ${gaveUp ? 'text-gray-500' : correct ? 'text-green-600' : 'text-red-600'}`}>
         {gaveUp ? ui('hereIsAnswer', lang) : correct ? ui('correct', lang) : ui('incorrect', lang)}
       </p>
+
+      {/* Explicit correct-answer sentence -- always shown once submitted,
+          regardless of color, so it's unambiguous either way. */}
+      {correctAnswerNode && (
+        <p className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+          <span className="font-bold text-gray-800">{ui('correctAnswerLabel', lang)}</span>{' '}
+          {correctAnswerNode}
+        </p>
+      )}
+
+      {takeawayFact && (
+        <div className="border-l-4 border-[#8E44AD] bg-[#8E44AD]/5 pl-3 pr-2 py-2 rounded-r-lg">
+          <p className="text-sm text-[#4A235A] leading-relaxed">
+            <span className="font-bold">{ui('takeaway', lang)}</span> <RichText text={takeawayFact} />
+          </p>
+        </div>
+      )}
 
       <div className="flex gap-2">
         {explanationText && (

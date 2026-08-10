@@ -58,7 +58,9 @@ export default function PhysicsInteractiveLessonPage() {
   const isLast = current === steps.length - 1
   const stepLabel = (type) => (UI_STRINGS.stepLabel[type] ? (lang === 'ta' ? UI_STRINGS.stepLabel[type].ta : UI_STRINGS.stepLabel[type].en) : type)
 
-  const goToChapter = () => navigate(`/physics/chapter/${chapterId}`)
+  // Always back to the Interactive Physics list specifically -- not the
+  // chapter shell's default (Theory) tab -- per the back-button fix.
+  const goToChapter = () => navigate(`/physics/chapter/${chapterId}/interactive`)
 
   const goNext = () => {
     if (isLast) {

@@ -94,6 +94,14 @@ export default function RankQuestion({ question, onNext, nextLabel, lang = 'en' 
         submitted={submitted} correct={allCorrect} gaveUp={gaveUp}
         explanationText={(lang === 'ta' && question.explanation_text_ta) || question.explanation_text}
         commonMistake={(lang === 'ta' && question.common_mistake_ta) || question.common_mistake}
+        correctAnswerNode={
+          <>
+            {correct_order.map((idx, i) => (
+              <span key={i}>{i > 0 && ' → '}<RichText text={items[idx]} /></span>
+            ))}
+          </>
+        }
+        takeawayFact={(lang === 'ta' && question.takeaway_fact_ta) || question.takeaway_fact}
         showExplanation={showExplanation} setShowExplanation={setShowExplanation}
         onNext={onNext} nextLabel={nextLabel} lang={lang}
       />

@@ -102,6 +102,22 @@ export default function FillBlankQuestion({ question, onNext, nextLabel, lang = 
         submitted={submitted} correct={allCorrect} gaveUp={gaveUp}
         explanationText={(lang === 'ta' && question.explanation_text_ta) || question.explanation_text}
         commonMistake={(lang === 'ta' && question.common_mistake_ta) || question.common_mistake}
+        correctAnswerNode={
+          <>
+            {blanks.map((b, i) => {
+              const displayCorrect = b.type === 'dropdown'
+                ? (b.displayChoices[b.choices.indexOf(b.correct)] ?? b.correct)
+                : b.correct
+              return (
+                <span key={i}>
+                  {i > 0 && '; '}
+                  <RichText text={b.displayLabel} />: <RichText text={String(displayCorrect)} />
+                </span>
+              )
+            })}
+          </>
+        }
+        takeawayFact={(lang === 'ta' && question.takeaway_fact_ta) || question.takeaway_fact}
         showExplanation={showExplanation} setShowExplanation={setShowExplanation}
         onNext={onNext} nextLabel={nextLabel} lang={lang}
       />

@@ -24,6 +24,8 @@ export const UI_STRINGS = {
   correct: { en: 'Correct!', ta: 'சரி!' },
   incorrect: { en: 'Not quite.', ta: 'சரியில்லை.' },
   hereIsAnswer: { en: 'Here’s the answer:', ta: 'இதோ பதில்:' },
+  correctAnswerLabel: { en: 'Correct answer:', ta: 'சரியான பதில்:' },
+  takeaway: { en: 'Takeaway:', ta: 'முக்கிய கருத்து:' },
   showExplanation: { en: 'Show explanation', ta: 'விளக்கத்தைக் காட்டு' },
   hideExplanation: { en: 'Hide explanation', ta: 'விளக்கத்தை மறை' },
   solution: { en: 'Solution', ta: 'தீர்வு' },

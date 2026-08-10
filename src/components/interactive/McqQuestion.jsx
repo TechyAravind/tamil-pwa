@@ -68,6 +68,8 @@ export default function McqQuestion({ question, onNext, nextLabel, lang = 'en' }
         submitted={submitted} correct={correct} gaveUp={gaveUp}
         explanationText={(lang === 'ta' && question.explanation_text_ta) || question.explanation_text}
         commonMistake={(lang === 'ta' && question.common_mistake_ta) || question.common_mistake}
+        correctAnswerNode={<RichText text={options[correct_index]} />}
+        takeawayFact={(lang === 'ta' && question.takeaway_fact_ta) || question.takeaway_fact}
         showExplanation={showExplanation} setShowExplanation={setShowExplanation}
         onNext={onNext} nextLabel={nextLabel} lang={lang}
       />
