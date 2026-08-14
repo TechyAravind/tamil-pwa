@@ -4,9 +4,12 @@ import { supabase } from '../supabase'
 import { isLessonComplete } from '../utils/lessonProgress'
 import { groupByMainSubTopic, groupLabel } from '../utils/physicsGroups'
 
+// Order here is the render order -- Extra One Mark Questions goes last,
+// per the "these are supplementary, not the real book-back ones" framing.
 const EXTRA_SECTIONS = [
-  { key: 'one_mark',  label: '1 Mark Questions',    icon: '⚡' },
-  { key: 'book_back', label: 'Book Back Problems',  icon: '📖' },
+  { key: 'book_back_mcq', label: 'Book Back One Mark Questions', icon: '⚡' },
+  { key: 'book_back',     label: 'Book Back Problems',           icon: '📖' },
+  { key: 'extra_one_mark', label: 'Extra One Mark Questions',    icon: '➕' },
 ]
 
 function LessonRow({ lesson, chapterId, navigate, i }) {

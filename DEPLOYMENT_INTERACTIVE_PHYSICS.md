@@ -31,7 +31,12 @@ physics_interactive_katex_retrofit.sql           -- fixes plain-text formulas on
 physics_interactive_schema_v3.sql                -- group_key, takeaway_fact, physics_formulas table
 physics_interactive_phase1_content.sql           -- takeaway facts + formula sheet data
 physics_interactive_presentation_retrofit.sql    -- bullet/equation formatting pass
-physics_interactive_phase3_content.sql           -- "One Mark Questions" + "Book Back Problems" lessons
+physics_interactive_phase3_content.sql           -- original "One Mark Questions" + "Book Back Problems" (6) lessons
+
+physics_interactive_schema_v4.sql                -- diagram_key column on physics_ip_questions
+physics_interactive_phase4_content.sql           -- renames phase3's quiz to "Extra One Mark Questions" (last);
+                                                  -- adds real "Book Back One Mark Questions" (15 textbook MCQs);
+                                                  -- replaces Book Back Problems with all 15 real textbook problems
 ```
 
 If you're unsure what's already applied, check in the Supabase SQL editor:
@@ -78,7 +83,7 @@ to find the right step, or add `video_url` to any new step you write.
 ## 5. What's in the Interactive Physics tab now
 
 Eight original + new lessons, grouped under 7 Main Sub Topics (matches
-the syllabus structure), plus two trailing sections:
+the syllabus structure), plus three trailing sections, in this order:
 
 - Introduction — Aristotle vs. Galileo
 - Newton's Laws — Reference Frames; Three Rules
@@ -87,11 +92,24 @@ the syllabus structure), plus two trailing sections:
 - Law of Conservation of Linear Momentum — Collision
 - Friction
 - Dynamics of Circular Motion
-- **1 Mark Questions** — 10 rapid MCQs spanning the whole chapter
-- **Book Back Problems** — 6 fully-worked numerical problems
+- **Book Back One Mark Questions** — the real 15 MCQs from the textbook's
+  evaluation section, book's own answer key, each with a full explanation
+  and a 2D diagram wherever the original question has one
+- **Book Back Problems** — all 15 real numerical problems from the
+  textbook's evaluation section, fully worked out
+- **Extra One Mark Questions** — the original 10 supplementary MCQs
+  (concept review, not from the book-back section) — kept, renamed, moved
+  to the end so it doesn't get confused with the real book-back questions
 
 The Formulas tab pulls from the dedicated `physics_formulas` table (14
 curated entries), grouped the same way.
+
+Question cards can now show a 2D diagram too, not just lesson steps —
+`physics_ip_questions.diagram_key` (added in schema v4) is rendered by
+`McqQuestion.jsx` and `FillBlankQuestion.jsx` right below the prompt, via
+the same `DiagramSlot` component the lesson steps use. Five new diagrams
+were added for this round: `block_against_wall`, `double_incline`,
+`two_blocks_force`, `block_on_rough_incline`, `force_components`.
 
 ## 6. Repeating this process for a future chapter
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import QuestionFeedback from './QuestionFeedback'
 import RichText from './RichText'
+import DiagramSlot from './diagrams/DiagramSlot'
 import { ui } from '../../utils/ipLang'
 
 export default function McqQuestion({ question, onNext, nextLabel, lang = 'en' }) {
@@ -31,6 +32,8 @@ export default function McqQuestion({ question, onNext, nextLabel, lang = 'en' }
       <p className="text-base text-gray-800 leading-relaxed mb-4">
         <RichText text={(lang === 'ta' && question.prompt_text_ta) || question.prompt_text} />
       </p>
+
+      <DiagramSlot diagramKey={question.diagram_key} />
 
       <div className="space-y-2.5">
         {options.map((opt, i) => {
