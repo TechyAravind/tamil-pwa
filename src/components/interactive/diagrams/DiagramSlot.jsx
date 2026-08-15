@@ -7,6 +7,10 @@ import DoubleInclineDiagram from './DoubleInclineDiagram'
 import TwoBlocksForceDiagram from './TwoBlocksForceDiagram'
 import BlockOnRoughInclineDiagram from './BlockOnRoughInclineDiagram'
 import ForceComponentsDiagram from './ForceComponentsDiagram'
+import SpringPEDiagram from './SpringPEDiagram'
+import VerticalCircleDiagram from './VerticalCircleDiagram'
+import ElasticCollisionDiagram from './ElasticCollisionDiagram'
+import InelasticCollisionDiagram from './InelasticCollisionDiagram'
 
 const DIAGRAMS = {
   ramp_angles: RampAnglesDiagram,
@@ -18,6 +22,10 @@ const DIAGRAMS = {
   two_blocks_force: TwoBlocksForceDiagram,
   block_on_rough_incline: BlockOnRoughInclineDiagram,
   force_components: ForceComponentsDiagram,
+  spring_pe: SpringPEDiagram,
+  vertical_circle: VerticalCircleDiagram,
+  elastic_collision: ElasticCollisionDiagram,
+  inelastic_collision: InelasticCollisionDiagram,
 }
 
 // Maps a step's `diagram_key` (a plain string column) to a built-in

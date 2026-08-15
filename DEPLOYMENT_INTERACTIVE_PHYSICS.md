@@ -37,6 +37,11 @@ physics_interactive_schema_v4.sql                -- diagram_key column on physic
 physics_interactive_phase4_content.sql           -- renames phase3's quiz to "Extra One Mark Questions" (last);
                                                   -- adds real "Book Back One Mark Questions" (15 textbook MCQs);
                                                   -- replaces Book Back Problems with all 15 real textbook problems
+
+physics_interactive_ch4_content.sql              -- Chapter 4 (Work, Energy and Power), full build:
+                                                  -- 7 Main Sub Topic lessons, Book Back One Mark Questions
+                                                  -- (15 real MCQs), Book Back Problems (5 real problems),
+                                                  -- Extra One Mark Questions (10 supplementary), Formulas tab
 ```
 
 If you're unsure what's already applied, check in the Supabase SQL editor:
@@ -110,6 +115,42 @@ Question cards can now show a 2D diagram too, not just lesson steps —
 the same `DiagramSlot` component the lesson steps use. Five new diagrams
 were added for this round: `block_against_wall`, `double_incline`,
 `two_blocks_force`, `block_on_rough_incline`, `force_components`.
+
+### Chapter 4 — Work, Energy and Power
+
+Built the same way as Chapter 3, all from `physics_interactive_ch4_content.sql`.
+Seven Main Sub Topic lessons, each with a bilingual hook, 2-3 explanation
+steps, a worked example pulled straight from the textbook (numbers
+independently re-derived and checked), and 3 practice questions:
+
+- What Is Work, Really? (zero/positive/negative work, `force_components` diagram)
+- Kinetic Energy, Potential Energy, and the Work-Energy Theorem (`spring_pe` diagram)
+- Conservative Forces & the Law of Conservation of Energy
+- Motion in a Vertical Circle (`vertical_circle` diagram; string vs. rigid-rod distinction)
+- Power: The Rate of Doing Work (P = W/t and P = F·v; kWh-is-energy-not-power warning)
+- Elastic & Inelastic Collisions (`elastic_collision` / `inelastic_collision` diagrams)
+- Loss of Kinetic Energy & Coefficient of Restitution
+
+Trailing sections, same structure as Chapter 3:
+
+- **Book Back One Mark Questions** — all 15 real MCQs from the Unit 4
+  evaluation section, verified against the official answer key
+  (1c 2d 3a 4a 5b 6a 7c 8b 9b 10b 11c 12c 13c 14d 15b), each with a full
+  worked explanation
+- **Book Back Problems** — all 5 real numerical problems from the same
+  evaluation section, fully worked (including the rod-vs-string vertical
+  circle comparison and the g=9.8 bullet-pendulum problem)
+- **Extra One Mark Questions** — 10 supplementary questions spanning all
+  7 sub-topics, kept last
+
+Four new diagrams were added for this chapter: `spring_pe`, `vertical_circle`,
+`elastic_collision`, `inelastic_collision`. The Formulas tab picks up 14
+new rows across the 7 `wep_*` group_keys automatically — no frontend
+changes were needed for any of this, same as Chapter 3.
+
+As with Chapter 3, every lesson step's `video_url` is left `null` — drop
+in a Manim animation link later with a one-line
+`update physics_ip_steps set video_url = '...' where id = '<id>'`.
 
 ## 6. Repeating this process for a future chapter
 

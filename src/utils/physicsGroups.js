@@ -9,6 +9,15 @@ export const MAIN_SUB_TOPICS = [
   { key: 'momentum',        label: 'Law of Conservation of Linear Momentum', label_ta: 'நேர்கோட்டு உந்தத்தின் அழிவின்மை விதி' },
   { key: 'friction',        label: 'Friction',                          label_ta: 'உராய்வு' },
   { key: 'circular_motion', label: 'Dynamics of Circular Motion',       label_ta: 'வட்ட இயக்கவியல்' },
+
+  // Chapter 4 -- Work, Energy and Power
+  { key: 'wep_introduction',    label: 'Introduction to Work',                          label_ta: 'வேலைக்கான அறிமுகம்' },
+  { key: 'wep_energy',          label: 'Energy: Kinetic & Potential',                   label_ta: 'ஆற்றல்: இயக்க மற்றும் நிலை ஆற்றல்' },
+  { key: 'wep_conservative',    label: 'Conservative Forces & Conservation of Energy',  label_ta: 'பாதுகாப்பு விசைகள் மற்றும் ஆற்றல் அழிவின்மை விதி' },
+  { key: 'wep_vertical_circle', label: 'Motion in a Vertical Circle',                   label_ta: 'செங்குத்து வட்டத்தில் இயக்கம்' },
+  { key: 'wep_power',           label: 'Power',                                         label_ta: 'திறன்' },
+  { key: 'wep_collisions',      label: 'Collisions',                                    label_ta: 'மோதல்கள்' },
+  { key: 'wep_restitution',     label: 'Loss of KE & Coefficient of Restitution',        label_ta: 'இயக்க ஆற்றல் இழப்பு மற்றும் மீள்தன்மைக் குணகம்' },
 ]
 
 export function groupLabel(key, lang = 'en') {
