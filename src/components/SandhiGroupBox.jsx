@@ -6,16 +6,15 @@ import SandhiRulePopup from './SandhiRulePopup'
 // Mnemonic pill colour, keyed by the exact tag string (matches the நன்னூல்
 // புணர்ச்சி sutra chart categories). Falls back to blue for any tag that
 // doesn't match one of these (e.g. a future addition to the chart).
+// Keyed by ROOT-level label only — the box shows just the top-level
+// classification (உ | உ, உ | மெ, மெ | உ, பூ | மெய்); the full root-to-leaf
+// breadcrumb (இ ஈ ஐ | உயிர், கு சு து பு | உயிர், etc.) only appears once
+// the student taps through to the rule popup.
 const MNEMONIC_COLOR = {
-  'இ ஈ ஐ | உயிர்':            'bg-blue-100 text-blue-700',
-  'உ | உயிர்':                 'bg-green-100 text-green-700',
-  'கு சு து பு | உயிர்':       'bg-teal-100 text-teal-700',
-  'டு று | உயிர்':             'bg-cyan-100 text-cyan-700',
-  'நெடில்/உயிர்த் தொடர் | உயிர்': 'bg-sky-100 text-sky-700',
-  'மு | உயிர்':                'bg-lime-100 text-lime-700',
-  'உ | மெ':                    'bg-purple-100 text-purple-700',
-  'மெ | உ':                    'bg-amber-100 text-amber-700',
-  'பூ | மெய்':                 'bg-pink-100 text-pink-700',
+  'உ | உ':      'bg-blue-100 text-blue-700',
+  'உ | மெ':     'bg-purple-100 text-purple-700',
+  'மெ | உ':     'bg-amber-100 text-amber-700',
+  'பூ | மெய்':  'bg-pink-100 text-pink-700',
 }
 const DEFAULT_PILL_COLOR = 'bg-blue-100 text-blue-700'
 
@@ -116,15 +115,27 @@ export default function SandhiGroupBox({ group, morphemes, rulesForGroup }) {
               </span>
             )}
 
-            {isActiveJunction && (
+            {isActiveJunction && (() => {
+              // Root-level label only (உ | உ / உ | மெ / மெ | உ / பூ | மெய்)
+              // — mnemonic_hierarchy[0] when the row has the full chain,
+              // falling back to the leaf tag itself for rows that predate
+              // the hierarchy field (e.g. standalone categories that only
+              // ever have one level, so tag === root already).
+              const hierarchy = Array.isArray(rule?.mnemonic_hierarchy)
+                ? rule.mnemonic_hierarchy
+                : (typeof rule?.mnemonic_hierarchy === 'string' && rule.mnemonic_hierarchy.length > 0
+                    ? JSON.parse(rule.mnemonic_hierarchy)
+                    : null)
+              const rootLabel = hierarchy?.[0] || rule?.mnemonic_tag
+              return (
               <div className="relative flex flex-col items-center justify-center mx-1">
-                {(isActiveNow || isPassed) && rule?.mnemonic_tag && (
+                {(isActiveNow || isPassed) && rootLabel && (
                   <span
                     className={`absolute -top-6 text-[10px] font-bold px-2 py-0.5 rounded-full
                                 shadow-sm whitespace-nowrap font-tamil
-                                ${MNEMONIC_COLOR[rule.mnemonic_tag] || DEFAULT_PILL_COLOR}`}
+                                ${MNEMONIC_COLOR[rootLabel] || DEFAULT_PILL_COLOR}`}
                   >
-                    {rule.mnemonic_tag}
+                    {rootLabel}
                   </span>
                 )}
 
@@ -146,7 +157,8 @@ export default function SandhiGroupBox({ group, morphemes, rulesForGroup }) {
                     : '+'}
                 </button>
               </div>
-            )}
+              )
+            })()}
           </span>
         )
       })}
