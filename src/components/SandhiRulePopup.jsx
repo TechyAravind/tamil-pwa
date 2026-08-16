@@ -6,10 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion'
  * bottom sheet so it works the same way on touch and desktop.
  *
  * rule.rule_steps is a jsonb array of { condition, rule, result } — each
- * step renders as its own card with a small stagger animation. rule_steps
- * always has at least 2 steps for any row that has been through the
- * mnemonics data pass: step 1 states the condition/sutra + the rule text,
- * step 2 shows the literal before → after transform.
+ * step renders as its own card with a small stagger animation. condition
+ * is the step's own full label as stored (e.g. "விதி 1", "விதி 2") — it is
+ * rendered verbatim, NOT prefixed with an auto "படி N:" counter, because
+ * for a நூற்பா-backed rule the label IS "விதி N" already. rule is the
+ * authoritative நூற்பா (traditional grammar sutra) or, where no sutra
+ * applies, a plain descriptive sentence. result is the word-level
+ * transformation shown under it (e.g. "காலை + ய் + இல் → காலைய் + இல்").
  */
 export default function SandhiRulePopup({ rule, onClose }) {
   const steps = Array.isArray(rule?.rule_steps)
@@ -75,7 +78,7 @@ export default function SandhiRulePopup({ rule, onClose }) {
                 >
                   {step.condition && (
                     <p className="text-xs text-gray-500 font-tamil font-semibold">
-                      படி {idx + 1}: {step.condition}
+                      {step.condition}
                     </p>
                   )}
                   {step.rule && (

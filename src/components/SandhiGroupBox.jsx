@@ -7,11 +7,15 @@ import SandhiRulePopup from './SandhiRulePopup'
 // புணர்ச்சி sutra chart categories). Falls back to blue for any tag that
 // doesn't match one of these (e.g. a future addition to the chart).
 const MNEMONIC_COLOR = {
-  'இ ஈ ஐ | உயிர்': 'bg-blue-100 text-blue-700',
-  'உ | உயிர்':      'bg-green-100 text-green-700',
-  'உ | மெ':         'bg-purple-100 text-purple-700',
-  'மெ | உ':         'bg-amber-100 text-amber-700',
-  'பூ | மெய்':      'bg-pink-100 text-pink-700',
+  'இ ஈ ஐ | உயிர்':            'bg-blue-100 text-blue-700',
+  'உ | உயிர்':                 'bg-green-100 text-green-700',
+  'கு சு து பு | உயிர்':       'bg-teal-100 text-teal-700',
+  'டு று | உயிர்':             'bg-cyan-100 text-cyan-700',
+  'நெடில்/உயிர்த் தொடர் | உயிர்': 'bg-sky-100 text-sky-700',
+  'மு | உயிர்':                'bg-lime-100 text-lime-700',
+  'உ | மெ':                    'bg-purple-100 text-purple-700',
+  'மெ | உ':                    'bg-amber-100 text-amber-700',
+  'பூ | மெய்':                 'bg-pink-100 text-pink-700',
 }
 const DEFAULT_PILL_COLOR = 'bg-blue-100 text-blue-700'
 
