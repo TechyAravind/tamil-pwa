@@ -1,7 +1,19 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import MorphemeChip from './MorphemeChip'
 import DraggableCombineUnit from './DraggableCombineUnit'
 import useSequentialCombine from '../hooks/useSequentialCombine'
+import { buildDerivationSummary, buildClassCombination } from '../utils/grammarDerivation'
+
+// small permanent corner dot on the container, colour-coded by the combined
+// word's final part-of-speech — visible whether the box is expanded or
+// combined, so the student always has an anchor for "what is this, ultimately".
+const POS_DOT_COLOR = {
+  'பெயர்ச்சொல்': 'bg-blue-400',
+  'வினைச்சொல்':  'bg-green-400',
+  'இடைச்சொல்':   'bg-yellow-400',
+  'உரிச்சொல்':   'bg-purple-400'
+}
 
 // சொல் வகை tab — same box-in-box look and staged-combine interaction as
 // the சொல் பொருள் tab (WordGroupBox). The only difference is what a tap on
@@ -10,6 +22,7 @@ import useSequentialCombine from '../hooks/useSequentialCombine'
 export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, groupVerbAnalysisMap, soloAnalysis, rulesForGroup }) {
   const units = morphemes.filter((m) => !m.is_separator)
   const connectorCount = Math.max(units.length - 1, 0)
+  const dotColor = POS_DOT_COLOR[group.combined_grammatical_label]
 
   const { combineStep, fullyCombined, advance, reset, registerTapForDoubleTap } =
     useSequentialCombine(connectorCount)
@@ -40,9 +53,20 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
       is_verb: group.combined_is_verb,
       is_separator: false
     }
+    const derivationSummary = connectorCount > 0
+      ? buildDerivationSummary(units, rulesForGroup, group.combined_grammar_note || group.combined_grammatical_label)
+      : null
+    const classCombination = connectorCount > 0 ? buildClassCombination(units) : null
 
     return (
-      <span className={boxClasses}>
+      <motion.span layout transition={{ duration: 0.3 }} className={`${boxClasses} relative`}>
+        {dotColor && (
+          <span
+            className={`absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full border-2 border-white ${dotColor}`}
+            title={group.combined_grammatical_label}
+            aria-hidden="true"
+          />
+        )}
         <span
           onClick={handleCombinedActivate}
           onDoubleClick={reset}
@@ -51,6 +75,10 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
           <MorphemeChip
             morpheme={combinedMorpheme}
             mode="grammar"
+            isGroupChip
+            grammarNote={group.combined_grammar_note}
+            classCombination={classCombination}
+            derivationSummary={derivationSummary}
             verbAnalysis={group.combined_is_verb ? (soloAnalysis || groupVerbAnalysisMap?.[group.id]) : null}
           />
         </span>
@@ -65,7 +93,7 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
             ↺
           </button>
         )}
-      </span>
+      </motion.span>
     )
   }
 
@@ -82,6 +110,8 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
       const nextUnit = units[i + 1]
       merged.display_form = rule?.after_form || `${merged.display_form}${nextUnit.display_form}`
       merged.grammatical_label = null
+      merged.structural_role = null
+      merged.role_category = null
       merged.is_verb = false
       merged.id = `${merged.id}+${nextUnit.id}`
     }
@@ -89,13 +119,21 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
   }
 
   return (
-    <span className={boxClasses}>
+    <motion.span layout transition={{ duration: 0.3 }} className={`${boxClasses} relative`}>
+      {dotColor && (
+        <span
+          className={`absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full border-2 border-white ${dotColor}`}
+          title={group.combined_grammatical_label}
+          aria-hidden="true"
+        />
+      )}
       {displayUnits.map((unit, di) => {
         const chip = (
           <MorphemeChip
             morpheme={unit}
             verbAnalysis={unit.is_verb ? verbAnalysisMap[unit.id] : null}
             mode="grammar"
+            isGroupChip={false}
           />
         )
         const isDraggable = di === 1
@@ -132,6 +170,6 @@ export default function GrammarGroupBox({ group, morphemes, verbAnalysisMap, gro
           </span>
         )
       })}
-    </span>
+    </motion.span>
   )
 }

@@ -15,6 +15,14 @@ const HIDE_DELAY = 120
  *                                       popup to drill into the பகுபத
  *                                       உறுப்பிலக்கணம் breakdown
  *
+ * wordLevel — true when this chip represents a COMPLETE word (the fully
+ * combined box, or a standalone morpheme that is a whole word by itself).
+ * false for a bound sub-piece inside a not-yet-combined word_group (e.g.
+ * த், உ inside கடந்து). Controls which classification fields the popup
+ * shows: whole words get grammatical_label (பெ/வி/இ/உ) + இலக்கணக்குறிப்பு +
+ * derivation summary; bound pieces get structural_role/role_category
+ * instead (see grammarDerivation.js).
+ *
  * ── Desktop behaviour ──
  *   mouseenter chip  → popup appears immediately
  *   mouseleave chip  → starts HIDE_DELAY timer
@@ -28,7 +36,7 @@ const HIDE_DELAY = 120
  *   tap X button     → popup disappears
  *   tap overlay      → popup disappears
  */
-export default function MorphemeChip({ morpheme, verbAnalysis, mode = 'meaning' }) {
+export default function MorphemeChip({ morpheme, verbAnalysis, mode = 'meaning', isGroupChip = false, grammarNote, classCombination, derivationSummary }) {
   const [popupOpen, setPopupOpen] = useState(false)
   // சொல் வகை tab: tapping a chip opens its word-classification first;
   // verb chips get a button inside that popup to drill into the detailed
@@ -61,7 +69,7 @@ export default function MorphemeChip({ morpheme, verbAnalysis, mode = 'meaning' 
   const isInteractive =
     mode === 'meaning'
       ? !!morpheme.word_meaning
-      : mode === 'grammar' && !!(morpheme.grammatical_label || morpheme.is_verb)
+      : mode === 'grammar' && !!(morpheme.grammatical_label || morpheme.is_verb || morpheme.structural_role)
 
   const popupMode  = mode === 'meaning' ? 'meaning' : popupView
 
@@ -155,6 +163,10 @@ export default function MorphemeChip({ morpheme, verbAnalysis, mode = 'meaning' 
           morpheme={morpheme}
           verbAnalysis={verbAnalysis}
           mode={popupMode}
+          isGroupChip={isGroupChip}
+          grammarNote={grammarNote}
+          classCombination={classCombination}
+          derivationSummary={derivationSummary}
           onClose={closeNow}
           triggerRef={chipRef}
           onMouseEnter={cancelHide}   // cursor entered popup → cancel hide timer

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import MorphemeChip from './MorphemeChip'
 import DraggableCombineUnit from './DraggableCombineUnit'
 import useSequentialCombine from '../hooks/useSequentialCombine'
@@ -39,7 +40,7 @@ export default function WordGroupBox({ group, morphemes, verbAnalysisMap, rulesF
     }
 
     return (
-      <span className={boxClasses}>
+      <motion.span layout transition={{ duration: 0.3 }} className={boxClasses}>
         <span
           onClick={handleCombinedActivate}
           onDoubleClick={reset}
@@ -58,7 +59,7 @@ export default function WordGroupBox({ group, morphemes, verbAnalysisMap, rulesF
             ↺
           </button>
         )}
-      </span>
+      </motion.span>
     )
   }
 
@@ -86,7 +87,7 @@ export default function WordGroupBox({ group, morphemes, verbAnalysisMap, rulesF
   }
 
   return (
-    <span className={boxClasses}>
+    <motion.span layout transition={{ duration: 0.3 }} className={boxClasses}>
       {displayUnits.map((unit, di) => {
         const chip = (
           <MorphemeChip
@@ -133,6 +134,6 @@ export default function WordGroupBox({ group, morphemes, verbAnalysisMap, rulesF
           </span>
         )
       })}
-    </span>
+    </motion.span>
   )
 }

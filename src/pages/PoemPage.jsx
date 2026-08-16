@@ -55,11 +55,12 @@ export default function PoemPage() {
           id, line_number, raw_text,
           morphemes (
             id, position, display_form, word_meaning,
-            grammatical_label, is_verb, is_separator, word_group_id
+            grammatical_label, is_verb, is_separator, word_group_id,
+            structural_role, role_category
           ),
           word_groups (
             id, position, combined_display_form, combined_meaning,
-            combined_grammatical_label, combined_is_verb
+            combined_grammatical_label, combined_is_verb, combined_grammar_note
           )
         `)
         .eq('page_id', pageId)

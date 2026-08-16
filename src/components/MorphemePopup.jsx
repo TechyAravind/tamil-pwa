@@ -17,6 +17,10 @@ export default function MorphemePopup({
   morpheme,
   verbAnalysis,
   mode,
+  isGroupChip = false,     // true = the fully-combined (or solo) box, not a raw in-progress piece
+  grammarNote,             // இலக்கணக்குறிப்பு macro-note — group-level only, not every word has one
+  classCombination,        // "பெயர் + இடை" — group-level, only when every piece is a real word
+  derivationSummary,       // auto-built "கட (பகுதி) + ... = வினையெச்சம்" formula — group-level
   onClose,
   triggerRef,
   onMouseEnter,   // called when cursor enters popup (cancels hide timer)
@@ -103,15 +107,76 @@ export default function MorphemePopup({
           </div>
         )}
 
-        {/* ── சொல் வகை tab mode — word classification ── */}
+        {/* ── சொல் வகை tab mode — word classification ──────────────────────
+            Priority: a real word-class (grammatical_label — பெ/வி/இ/உ) if
+            this piece IS a word on its own (காலை, இல், கடி, நகர், கட...);
+            otherwise its sub-word role (structural_role — பகுதி/இடைநிலை/
+            விகுதி/சந்தி மெய், e.g. உ inside கடந்து). A piece can have both
+            (e.g. கட = வினைச்சொல், shown with "வினைப் பகுதி" as a sub-note) —
+            the root of a verb is itself a word-class AND plays a role. ── */}
         {mode === 'classification' && (
           <div>
             <p className="text-xs text-gold font-bold uppercase tracking-widest mb-2">
               சொல் வகை
             </p>
             <p className="text-gray-800 leading-relaxed font-tamil text-base">
-              {morpheme.grammatical_label || 'சொல் வகை சேர்க்கப்படவில்லை'}
+              {morpheme.grammatical_label || morpheme.structural_role || 'சொல் வகை சேர்க்கப்படவில்லை'}
             </p>
+            {morpheme.grammatical_label && morpheme.structural_role && (
+              <p className="text-gray-400 text-xs font-tamil mt-1">
+                ({morpheme.structural_role})
+              </p>
+            )}
+            {!morpheme.grammatical_label && morpheme.structural_role && morpheme.role_category && (
+              <p className="text-gray-400 text-xs font-tamil mt-1">
+                ({morpheme.role_category})
+              </p>
+            )}
+
+            {morpheme.word_meaning && (
+              <>
+                <p className="text-xs text-gray-400 uppercase tracking-widest mt-4 mb-1">
+                  செயல்பாடு
+                </p>
+                <p className="text-gray-600 text-sm leading-relaxed font-tamil">
+                  {morpheme.word_meaning}
+                </p>
+              </>
+            )}
+
+            {/* ── group-level only: the fully-combined/solo box ── */}
+            {isGroupChip && grammarNote && (
+              <>
+                <p className="text-xs text-gold font-bold uppercase tracking-widest mt-4 mb-2">
+                  இலக்கணக்குறிப்பு
+                </p>
+                <p className="text-gray-900 font-bold leading-relaxed font-tamil text-base">
+                  {grammarNote}
+                </p>
+              </>
+            )}
+
+            {isGroupChip && classCombination && (
+              <>
+                <p className="text-xs text-gray-400 uppercase tracking-widest mt-4 mb-1">
+                  சொல்வகைக் கூட்டு
+                </p>
+                <p className="text-gray-600 text-sm leading-relaxed font-tamil">
+                  {classCombination}
+                </p>
+              </>
+            )}
+
+            {isGroupChip && derivationSummary && (
+              <>
+                <p className="text-xs text-gray-400 uppercase tracking-widest mt-4 mb-1">
+                  பகுப்பாய்வு
+                </p>
+                <p className="text-gray-600 text-sm leading-relaxed font-tamil">
+                  {derivationSummary}
+                </p>
+              </>
+            )}
 
             {morpheme.is_verb && verbAnalysis && (
               <button
