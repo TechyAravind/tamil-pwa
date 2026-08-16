@@ -16,6 +16,28 @@ const MNEMONIC_COLOR = {
   'மெ | உ':     'bg-amber-100 text-amber-700',
   'பூ | மெய்':  'bg-pink-100 text-pink-700',
 }
+
+// Every leaf mnemonic_tag mapped to its ROOT classification, hard-coded
+// here so the box-level pill works immediately from mnemonic_tag alone —
+// it does NOT depend on the mnemonic_hierarchy column being populated
+// (that column only matters for the full breadcrumb shown inside the rule
+// popup). இ ஈ ஐ | உயிர், கு சு து பு | உயிர், etc. all collapse to
+// "உ | உ" here; உ | மெ, மெ | உ, பூ | மெய் are their own roots.
+const ROOT_OF_TAG = {
+  'இ ஈ ஐ | உயிர்':                       'உ | உ',
+  'அ, ஆ, ஊ, எ, ஒ, ஓ ஔ | உயிர்':          'உ | உ',
+  'ஏ | உயிர்':                            'உ | உ',
+  'உ | உயிர்':                            'உ | உ',
+  'கு சு து பு | உயிர்':                  'உ | உ',
+  'டு று | உயிர்':                        'உ | உ',
+  'நெடில் தொடர்க் குற்றியலுகரம் | உயிர்':  'உ | உ',
+  'உயிர்த்தொடர்க் குற்றியலுகரம் | உயிர்':  'உ | உ',
+  'நெடில்/உயிர்த் தொடர் | உயிர்':          'உ | உ', // pre-split tag, just in case
+  'மு | உயிர்':                           'உ | உ',
+  'உ | மெ':                               'உ | மெ',
+  'மெ | உ':                               'மெ | உ',
+  'பூ | மெய்':                            'பூ | மெய்',
+}
 const DEFAULT_PILL_COLOR = 'bg-blue-100 text-blue-700'
 
 /**
@@ -116,17 +138,17 @@ export default function SandhiGroupBox({ group, morphemes, rulesForGroup }) {
             )}
 
             {isActiveJunction && (() => {
-              // Root-level label only (உ | உ / உ | மெ / மெ | உ / பூ | மெய்)
-              // — mnemonic_hierarchy[0] when the row has the full chain,
-              // falling back to the leaf tag itself for rows that predate
-              // the hierarchy field (e.g. standalone categories that only
-              // ever have one level, so tag === root already).
-              const hierarchy = Array.isArray(rule?.mnemonic_hierarchy)
-                ? rule.mnemonic_hierarchy
-                : (typeof rule?.mnemonic_hierarchy === 'string' && rule.mnemonic_hierarchy.length > 0
-                    ? JSON.parse(rule.mnemonic_hierarchy)
-                    : null)
-              const rootLabel = hierarchy?.[0] || rule?.mnemonic_tag
+              // Root-level label only (உ | உ / உ | மெ / மெ | உ / பூ | மெய்).
+              // Computed from the hard-coded ROOT_OF_TAG map keyed off
+              // mnemonic_tag FIRST — this works immediately regardless of
+              // whether mnemonic_hierarchy has been populated in the
+              // database yet. mnemonic_hierarchy[0] is only used as a
+              // secondary fallback (e.g. a future category not yet added
+              // to ROOT_OF_TAG), and the leaf tag itself is the last resort.
+              const rootLabel =
+                ROOT_OF_TAG[rule?.mnemonic_tag]
+                || rule?.mnemonic_hierarchy?.[0]
+                || rule?.mnemonic_tag
               return (
               <div className="relative flex flex-col items-center justify-center mx-1">
                 {(isActiveNow || isPassed) && rootLabel && (
