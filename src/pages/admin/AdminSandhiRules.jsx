@@ -2,12 +2,18 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../supabase'
 import Toast from '../../components/Toast'
 
-const RULE_BLANK = { rule_text: '', before_form: '', after_form: '', changed_letter: '' }
+const STEP_BLANK = { condition: '', rule: '', result: '' }
 
 /**
  * Admin UI for புணர்ச்சி விதிகள் (sandhi_rules) — the rule shown when the
- * user taps a junction point in the new இலக்கணம் tab. One row per
- * connector (junction) inside a word group.
+ * user taps an Active-Junction connector in the சொற்களின் புணர்ச்சி tab.
+ * One row per connector (junction) inside a word group.
+ *
+ * Each connector also has an Active Junction / Base Merge toggle — this
+ * writes to morphemes.is_sandhi_junction on the morpheme immediately
+ * BEFORE that connector (word_groups store their morphemes in position
+ * order; connector i sits between units[i] and units[i+1], so the flag
+ * lives on units[i]).
  */
 export default function AdminSandhiRules() {
   const [lines, setLines]   = useState([])
@@ -23,7 +29,7 @@ export default function AdminSandhiRules() {
     const [{ data: l }, { data: g }, { data: m }, { data: r }] = await Promise.all([
       supabase.from('poem_lines').select('id, raw_text, line_number').order('line_number'),
       supabase.from('word_groups').select('*').order('position'),
-      supabase.from('morphemes').select('id, poem_line_id, position, display_form, is_separator, word_group_id').order('position'),
+      supabase.from('morphemes').select('id, poem_line_id, position, display_form, is_separator, word_group_id, is_sandhi_junction').order('position'),
       supabase.from('sandhi_rules').select('*').order('connector_index')
     ])
     setLines(l || [])
@@ -50,23 +56,39 @@ export default function AdminSandhiRules() {
   const [drafts, setDrafts] = useState({}) // connectorIndex → form fields, edited in this session
 
   const draftFor = (i) => drafts[i] || {
-    rule_text: ruleByConnector[i]?.rule_text || '',
+    mnemonic_tag: ruleByConnector[i]?.mnemonic_tag || '',
     before_form: ruleByConnector[i]?.before_form || '',
     after_form: ruleByConnector[i]?.after_form || '',
-    changed_letter: ruleByConnector[i]?.changed_letter || ''
+    changed_letter: ruleByConnector[i]?.changed_letter || '',
+    rule_steps: (Array.isArray(ruleByConnector[i]?.rule_steps) && ruleByConnector[i].rule_steps.length > 0)
+      ? ruleByConnector[i].rule_steps
+      : [STEP_BLANK]
   }
 
   const updateDraft = (i, field, val) =>
     setDrafts((d) => ({ ...d, [i]: { ...draftFor(i), [field]: val } }))
 
+  const updateStep = (i, stepIdx, field, val) => {
+    const d = draftFor(i)
+    const steps = d.rule_steps.map((s, si) => si === stepIdx ? { ...s, [field]: val } : s)
+    updateDraft(i, 'rule_steps', steps)
+  }
+  const addStep = (i) => updateDraft(i, 'rule_steps', [...draftFor(i).rule_steps, { ...STEP_BLANK }])
+  const removeStep = (i, stepIdx) => {
+    const remaining = draftFor(i).rule_steps.filter((_, si) => si !== stepIdx)
+    updateDraft(i, 'rule_steps', remaining.length > 0 ? remaining : [{ ...STEP_BLANK }])
+  }
+
   const saveConnector = async (i) => {
     const d = draftFor(i)
-    if (!d.rule_text.trim()) return showToast('விதி உரை தேவை', 'error')
+    const steps = d.rule_steps.filter((s) => s.condition.trim() || s.rule.trim() || s.result.trim())
+    if (steps.length === 0) return showToast('குறைந்தது ஒரு விதிப்படி (rule step) தேவை', 'error')
 
     const payload = {
       word_group_id: groupId,
       connector_index: i,
-      rule_text: d.rule_text,
+      mnemonic_tag: d.mnemonic_tag || null,
+      rule_steps: steps,
       before_form: d.before_form || null,
       after_form: d.after_form || null,
       changed_letter: d.changed_letter || null
@@ -79,7 +101,7 @@ export default function AdminSandhiRules() {
 
     if (error) return showToast('பிழை: ' + error.message, 'error')
     showToast('விதி சேமிக்கப்பட்டது ✓')
-    setDrafts((d) => { const n = { ...d }; delete n[i]; return n })
+    setDrafts((d2) => { const n = { ...d2 }; delete n[i]; return n })
     load()
   }
 
@@ -91,6 +113,18 @@ export default function AdminSandhiRules() {
     showToast('நீக்கப்பட்டது'); load()
   }
 
+  // Toggle Active Junction / Base Merge — lives on the morpheme immediately
+  // BEFORE this connector (units[i]).
+  const toggleJunction = async (i) => {
+    const morph = units[i]
+    if (!morph) return
+    const nextValue = morph.is_sandhi_junction === false ? true : false
+    const { error } = await supabase.from('morphemes').update({ is_sandhi_junction: nextValue }).eq('id', morph.id)
+    if (error) return showToast('பிழை: ' + error.message, 'error')
+    showToast(nextValue ? 'Active Junction ஆக மாற்றப்பட்டது' : 'Base Merge ஆக மாற்றப்பட்டது')
+    load()
+  }
+
   return (
     <div>
       {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
@@ -98,7 +132,10 @@ export default function AdminSandhiRules() {
       <p className="text-sm text-gray-500 mb-4 max-w-2xl">
         One row per junction inside a word group — the point where two morphemes are
         combined. Word groups are created on the Morphemes admin page; pick one here to
-        add the சந்தி rule shown when a student taps that junction in the app.
+        add the சந்தி rule shown when a student taps that junction in the app. Each
+        junction can be marked Active (interactive button + mnemonic pill) or Base Merge
+        (subtle static divider, non-interactive — used for plain concatenation or internal
+        verb-tense suffixing that isn't a real documented sandhi phenomenon).
       </p>
 
       <div className="grid grid-cols-2 gap-3 max-w-xl mb-6">
@@ -128,17 +165,30 @@ export default function AdminSandhiRules() {
       )}
 
       {groupId && connectorCount > 0 && (
-        <div className="space-y-4 max-w-xl">
+        <div className="space-y-4 max-w-2xl">
           {Array.from({ length: connectorCount }).map((_, i) => {
             const d = draftFor(i)
             const existing = ruleByConnector[i]
+            const isActive = units[i]?.is_sandhi_junction !== false
             return (
-              <div key={i} className="card space-y-2">
-                <h3 className="font-semibold font-tamil">
-                  இணைப்பு {i + 1}: {units[i]?.display_form} + {units[i + 1]?.display_form}
-                </h3>
+              <div key={i} className="card space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <h3 className="font-semibold font-tamil">
+                    இணைப்பு {i + 1}: {units[i]?.display_form} + {units[i + 1]?.display_form}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => toggleJunction(i)}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-full border transition-colors
+                      ${isActive
+                        ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+                        : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'}`}
+                  >
+                    {isActive ? '🔵 Active Junction' : '· Base Merge'} — click to toggle
+                  </button>
+                </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
                     <label className="label">Before (e.g. காற்று + இல்)</label>
                     <input className="input font-tamil" value={d.before_form}
@@ -149,21 +199,40 @@ export default function AdminSandhiRules() {
                     <input className="input font-tamil" value={d.after_form}
                       onChange={(e) => updateDraft(i, 'after_form', e.target.value)} />
                   </div>
+                  <div>
+                    <label className="label">மாறிய எழுத்து (optional)</label>
+                    <input className="input font-tamil" placeholder="e.g. ற்"
+                      value={d.changed_letter}
+                      onChange={(e) => updateDraft(i, 'changed_letter', e.target.value)} />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="label">விதி உரை (Rule text) *</label>
-                  <textarea className="input font-tamil" rows={2}
-                    placeholder="e.g. உயிர் வரின் மிக்குறும் மெய்யீட்டு பேறே"
-                    value={d.rule_text}
-                    onChange={(e) => updateDraft(i, 'rule_text', e.target.value)} />
+                  <label className="label">Mnemonic tag (optional pill, e.g. "இ ஈ ஐ | உயிர்")</label>
+                  <input className="input font-tamil" placeholder="e.g. உ | மெ"
+                    value={d.mnemonic_tag}
+                    onChange={(e) => updateDraft(i, 'mnemonic_tag', e.target.value)} />
                 </div>
 
-                <div>
-                  <label className="label">புதிதாகச் சேர்க்கப்பட்ட எழுத்து (optional)</label>
-                  <input className="input font-tamil w-32" placeholder="e.g. ற்"
-                    value={d.changed_letter}
-                    onChange={(e) => updateDraft(i, 'changed_letter', e.target.value)} />
+                <div className="space-y-2">
+                  <label className="label">விதிப்படிகள் (Rule steps — shown in order in the popup)</label>
+                  {d.rule_steps.map((step, si) => (
+                    <div key={si} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-start bg-cream/50 p-2 rounded-lg">
+                      <input className="input font-tamil text-sm" placeholder="condition (எ.கா. உ | மெ)"
+                        value={step.condition}
+                        onChange={(e) => updateStep(i, si, 'condition', e.target.value)} />
+                      <input className="input font-tamil text-sm" placeholder="rule (விதி உரை)"
+                        value={step.rule}
+                        onChange={(e) => updateStep(i, si, 'rule', e.target.value)} />
+                      <input className="input font-tamil text-sm" placeholder="result (விளைவு)"
+                        value={step.result}
+                        onChange={(e) => updateStep(i, si, 'result', e.target.value)} />
+                      <button type="button" onClick={() => removeStep(i, si)}
+                        className="text-red-500 text-xs px-2 py-1.5 hover:bg-red-50 rounded">✕</button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => addStep(i)}
+                    className="text-xs text-primary font-semibold hover:underline">+ படி சேர்</button>
                 </div>
 
                 <div className="flex gap-2">

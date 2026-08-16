@@ -1,59 +1,122 @@
+import { motion, AnimatePresence } from 'framer-motion'
+
 /**
- * SandhiRulePopup — the "drop down tab" shown when the user presses the
- * connecting point between two combined morphemes in the இலக்கணம்
- * (புணர்ச்சி) tab. Rendered as a bottom sheet so it works the same way
- * on touch and desktop, without needing to anchor to a tiny inline marker.
+ * SandhiRulePopup — the "drop down tab" shown when the user taps an
+ * Active-Junction connector in the சொற்களின் புணர்ச்சி tab. Rendered as a
+ * bottom sheet so it works the same way on touch and desktop.
+ *
+ * rule.rule_steps is a jsonb array of { condition, rule, result } — each
+ * step renders as its own card with a small stagger animation. rule_steps
+ * always has at least 2 steps for any row that has been through the
+ * mnemonics data pass: step 1 states the condition/sutra + the rule text,
+ * step 2 shows the literal before → after transform.
  */
 export default function SandhiRulePopup({ rule, onClose }) {
+  const steps = Array.isArray(rule?.rule_steps)
+    ? rule.rule_steps
+    : (typeof rule?.rule_steps === 'string' ? JSON.parse(rule.rule_steps) : [])
+
   return (
     <>
       <div className="fixed inset-0 z-40 bg-black/20" onPointerDown={onClose} />
 
       <div
         className="fixed left-0 right-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-2xl
-                   border-t border-gray-100 p-5 max-w-2xl mx-auto animate-fade-in"
+                   border-t border-gray-100 p-5 max-w-2xl mx-auto animate-fade-in
+                   max-h-[80vh] overflow-y-auto"
       >
-        <div className="flex items-start justify-between mb-3">
-          <p className="text-xs text-gold font-bold uppercase tracking-widest">
-            புணர்ச்சி விதி
-          </p>
-          <button
-            onPointerDown={(e) => { e.stopPropagation(); onClose() }}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100
-                       hover:bg-gray-200 active:bg-gray-300 text-gray-500 hover:text-gray-800
-                       text-sm font-bold transition-colors -mt-1"
-            aria-label="மூடு"
-          >
-            ✕
-          </button>
-        </div>
-
-        {rule ? (
-          <div className="space-y-3">
-            {(rule.before_form || rule.after_form) && (
-              <p className="font-tamil text-lg font-bold text-primary">
-                {rule.before_form} {rule.before_form && rule.after_form ? '→' : ''} {rule.after_form}
-              </p>
-            )}
-
-            <p className="font-tamil text-base text-gray-800 leading-relaxed">
-              {rule.rule_text}
+        <div className="flex items-start justify-between mb-4 pb-3 border-b border-gray-100 gap-3">
+          <div className="min-w-0">
+            <p className="text-xs text-gold font-bold uppercase tracking-widest mb-1">
+              புணர்ச்சி விதி
             </p>
-
-            {rule.changed_letter && (
-              <p className="font-tamil text-sm text-gray-500">
-                புதிதாகச் சேர்க்கப்பட்ட எழுத்து:{' '}
-                <span className="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
-                  {rule.changed_letter}
-                </span>
-              </p>
+            {(rule?.before_form || rule?.after_form) && (
+              <h3 className="text-xl font-tamil font-bold text-primary flex items-center gap-2 flex-wrap">
+                {rule.before_form}
+                {rule.before_form && rule.after_form && <span className="text-gray-400">➔</span>}
+                {rule.after_form}
+              </h3>
             )}
           </div>
-        ) : (
+
+          <div className="flex items-center gap-2 shrink-0">
+            {rule?.mnemonic_tag && (
+              <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-bold
+                                shadow-sm font-tamil whitespace-nowrap">
+                {rule.mnemonic_tag}
+              </span>
+            )}
+            <button
+              onPointerDown={(e) => { e.stopPropagation(); onClose() }}
+              className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100
+                         hover:bg-gray-200 active:bg-gray-300 text-gray-500 hover:text-gray-800
+                         text-sm font-bold transition-colors"
+              aria-label="மூடு"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        {!rule ? (
           <p className="font-tamil text-gray-400 text-sm py-2">
             இந்த இணைப்புக்கான விதி விரைவில் சேர்க்கப்படும்.
           </p>
+        ) : (
+          <div className="space-y-3">
+            <AnimatePresence>
+              {steps.map((step, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.15 }}
+                  className="bg-white border border-gray-100 p-4 rounded-lg shadow-sm flex flex-col gap-2"
+                >
+                  {step.condition && (
+                    <p className="text-xs text-gray-500 font-tamil font-semibold">
+                      படி {idx + 1}: {step.condition}
+                    </p>
+                  )}
+                  {step.rule && (
+                    <p className="text-base font-tamil font-medium text-gray-800 border-l-4 border-blue-400 pl-3">
+                      {step.rule}
+                    </p>
+                  )}
+                  {step.result && (
+                    <p className="text-md font-tamil text-emerald-700 bg-emerald-50 self-start px-2 py-1 rounded">
+                      ➔ {step.result}
+                    </p>
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            {steps.length === 0 && (
+              <p className="font-tamil text-gray-400 text-sm py-2">
+                இந்த இணைப்புக்கான விதிப்படிகள் இன்னும் சேர்க்கப்படவில்லை.
+              </p>
+            )}
+          </div>
         )}
+
+        {rule?.changed_letter && (
+          <div className="mt-5 pt-4 border-t border-gray-100 flex items-center gap-3">
+            <span className="text-sm text-gray-600 font-tamil">புதிதாகச் சேர்க்கப்பட்ட எழுத்து:</span>
+            <span className="w-8 h-8 flex items-center justify-center bg-amber-100 text-amber-800
+                              font-bold rounded-full border border-amber-300 font-tamil">
+              {rule.changed_letter}
+            </span>
+          </div>
+        )}
+
+        <button
+          onClick={onClose}
+          className="mt-5 w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium
+                     font-tamil rounded-lg transition-colors"
+        >
+          மூடு
+        </button>
       </div>
     </>
   )

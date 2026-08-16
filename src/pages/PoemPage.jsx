@@ -56,7 +56,7 @@ export default function PoemPage() {
           morphemes (
             id, position, display_form, word_meaning,
             grammatical_label, is_verb, is_separator, word_group_id,
-            structural_role, role_category
+            structural_role, role_category, is_sandhi_junction
           ),
           word_groups (
             id, position, combined_display_form, combined_meaning,
@@ -100,7 +100,7 @@ export default function PoemPage() {
         // 4c. புணர்ச்சி rules per group connector (இலக்கணம் tab)
         const { data: rules } = await supabase
           .from('sandhi_rules')
-          .select('word_group_id, connector_index, rule_text, before_form, after_form, changed_letter')
+          .select('word_group_id, connector_index, mnemonic_tag, rule_steps, before_form, after_form, changed_letter')
           .in('word_group_id', groupIds)
         const rulesMap = {}
         ;(rules || []).forEach((r) => {

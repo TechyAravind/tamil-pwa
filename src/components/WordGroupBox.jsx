@@ -79,7 +79,12 @@ export default function WordGroupBox({ group, morphemes, verbAnalysisMap, rulesF
       const rule = rulesForGroup?.[i]
       const nextUnit = units[i + 1]
       merged.display_form = rule?.after_form || `${merged.display_form}${nextUnit.display_form}`
-      merged.word_meaning = rule?.rule_text || merged.word_meaning
+      // rule_steps replaced the old single rule_text column — step 1's
+      // "rule" field carries the same descriptive text rule_text used to.
+      const steps = Array.isArray(rule?.rule_steps)
+        ? rule.rule_steps
+        : (typeof rule?.rule_steps === 'string' ? JSON.parse(rule.rule_steps) : null)
+      merged.word_meaning = steps?.[0]?.rule || merged.word_meaning
       merged.is_verb = false
       merged.id = `${merged.id}+${nextUnit.id}`
     }
