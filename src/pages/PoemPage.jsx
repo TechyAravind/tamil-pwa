@@ -100,7 +100,7 @@ export default function PoemPage() {
         // 4c. புணர்ச்சி rules per group connector (இலக்கணம் tab)
         const { data: rules } = await supabase
           .from('sandhi_rules')
-          .select('word_group_id, connector_index, mnemonic_tag, rule_steps, before_form, after_form, changed_letter')
+          .select('word_group_id, connector_index, mnemonic_tag, mnemonic_hierarchy, rule_steps, before_form, after_form, changed_letter')
           .in('word_group_id', groupIds)
         const rulesMap = {}
         ;(rules || []).forEach((r) => {

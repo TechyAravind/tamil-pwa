@@ -42,22 +42,32 @@ export default function SandhiRulePopup({ rule, onClose }) {
             )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {rule?.mnemonic_tag && (
-              <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-bold
-                                shadow-sm font-tamil whitespace-nowrap">
-                {rule.mnemonic_tag}
-              </span>
-            )}
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
             <button
               onPointerDown={(e) => { e.stopPropagation(); onClose() }}
               className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100
                          hover:bg-gray-200 active:bg-gray-300 text-gray-500 hover:text-gray-800
-                         text-sm font-bold transition-colors"
+                         text-sm font-bold transition-colors mb-1"
               aria-label="மூடு"
             >
               ✕
             </button>
+
+            {/* Full root-to-leaf classification chain, stacked one below
+                another (e.g. உ | உ → உ | உயிர் → கு | உயிர் → கு சு து பு |
+                உயிர்) — falls back to the single leaf tag if the row
+                predates the hierarchy field. */}
+            {(Array.isArray(rule?.mnemonic_hierarchy) ? rule.mnemonic_hierarchy
+              : rule?.mnemonic_tag ? [rule.mnemonic_tag] : []
+            ).map((level, i) => (
+              <span
+                key={i}
+                className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold
+                           shadow-sm font-tamil whitespace-nowrap"
+              >
+                {level}
+              </span>
+            ))}
           </div>
         </div>
 
