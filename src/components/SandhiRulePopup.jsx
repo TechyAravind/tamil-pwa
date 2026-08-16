@@ -14,6 +14,26 @@ import { motion, AnimatePresence } from 'framer-motion'
  * applies, a plain descriptive sentence. result is the word-level
  * transformation shown under it (e.g. "காலை + ய் + இல் → காலைய் + இல்").
  */
+// Renders step.result text, treating anything between «...» as a letter
+// being DROPPED (குற்றியலுகர உகர மெய்விட்டோடும் rules etc.) — shown with a
+// real CSS strikethrough instead of a Unicode combining mark, since
+// combining strikethrough glyphs don't render reliably over Tamil
+// consonants in every font. e.g. "வேண்ட் + «உ» + இன் → வேண்ட் + இன்" shows
+// உ crossed out.
+function renderStepResult(text) {
+  const parts = text.split(/(«[^»]*»)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('«') && part.endsWith('»')) {
+      return (
+        <s key={i} className="text-red-400 decoration-2">
+          {part.slice(1, -1)}
+        </s>
+      )
+    }
+    return <span key={i}>{part}</span>
+  })
+}
+
 export default function SandhiRulePopup({ rule, onClose }) {
   const steps = Array.isArray(rule?.rule_steps)
     ? rule.rule_steps
@@ -98,7 +118,7 @@ export default function SandhiRulePopup({ rule, onClose }) {
                   )}
                   {step.result && (
                     <p className="text-md font-tamil text-emerald-700 bg-emerald-50 self-start px-2 py-1 rounded">
-                      ➔ {step.result}
+                      ➔ {renderStepResult(step.result)}
                     </p>
                   )}
                 </motion.div>

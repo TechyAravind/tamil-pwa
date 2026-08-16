@@ -13,7 +13,7 @@ import SandhiRulePopup from './SandhiRulePopup'
 const MNEMONIC_COLOR = {
   'உ | உ':      'bg-blue-100 text-blue-700',
   'உ | மெ':     'bg-purple-100 text-purple-700',
-  'மெ | உ':     'bg-amber-100 text-amber-700',
+  'மெ | உ':     'bg-blue-100 text-blue-700',
   'பூ | மெய்':  'bg-pink-100 text-pink-700',
 }
 
