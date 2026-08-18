@@ -15,6 +15,7 @@ const MNEMONIC_COLOR = {
   'உ | மெ':     'bg-purple-100 text-purple-700',
   'மெ | உ':     'bg-blue-100 text-blue-700',
   'பூ | மெய்':  'bg-pink-100 text-pink-700',
+  'பண்பு':      'bg-green-100 text-green-700',
 }
 
 // Every leaf mnemonic_tag mapped to its ROOT classification, hard-coded
@@ -37,6 +38,13 @@ const ROOT_OF_TAG = {
   'உ | மெ':                               'உ | மெ',
   'மெ | உ':                               'மெ | உ',
   'பூ | மெய்':                            'பூ | மெய்',
+  // பண்புப்பெயர்ப் புணர்ச்சி (words ending in "மை" — சிறுமை, etc.) is an
+  // entirely different mechanism (ஈறு போதல் — the whole ending drops),
+  // not a உகர sandhi variant at all, so it gets its own root label
+  // instead of collapsing into "உ | உ". The popup's top-right pill shows
+  // the fuller "பண்புப்பெயர்" (via mnemonic_hierarchy), the box above the
+  // connector shows just "பண்பு".
+  'பண்பு':                                'பண்பு',
 }
 const DEFAULT_PILL_COLOR = 'bg-blue-100 text-blue-700'
 

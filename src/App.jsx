@@ -2,6 +2,12 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { supabase } from './supabase'
 import useStore from './store/useStore'
+import { RequireAuth, PublicOnlyRoute, AdminRoute } from './components/auth/RouteGuards'
+
+// -- Auth pages -------------------------------------------------------------
+import SignUpPage        from './pages/auth/SignUpPage'
+import LoginPage         from './pages/auth/LoginPage'
+import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 
 // -- Platform pages -----------------------------------------------------------
 import LangfluencerPage from './pages/LangfluencerPage'
@@ -49,21 +55,23 @@ import AdminPhysicsChapters  from './pages/admin/AdminPhysicsChapters'
 import AdminPhysicsSubtopics from './pages/admin/AdminPhysicsSubtopics'
 import AdminPhysicsContent   from './pages/admin/AdminPhysicsContent'
 
-// Guard: redirect to login if not authenticated
-function ProtectedRoute({ children }) {
-  const session = useStore((s) => s.session)
-  if (session === undefined) return null  // still loading
-  if (!session) return <Navigate to="/admin/login" replace />
-  return children
-}
-
 export default function App() {
-  const setSession = useStore((s) => s.setSession)
+  const setSession     = useStore((s) => s.setSession)
+  const setAuthChecked = useStore((s) => s.setAuthChecked)
+  const fetchProfile    = useStore((s) => s.fetchProfile)
+  const resetAuthDerivedState = useStore((s) => s.resetAuthDerivedState)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setAuthChecked(true)
+      if (session) fetchProfile()
+    })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
+      setAuthChecked(true)
+      if (session) fetchProfile()
+      else resetAuthDerivedState()
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -71,40 +79,48 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Langfluencer platform (root) */}
-        <Route path="/"                      element={<LangfluencerPage />} />
-        <Route path="/subject/:subjectId"    element={<SubjectPage />} />
+        {/* Auth */}
+        <Route path="/login"          element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
+        <Route path="/signup"         element={<PublicOnlyRoute><SignUpPage /></PublicOnlyRoute>} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* 11th Tamil app */}
-        <Route path="/tamil/11"                        element={<LandingPage />} />
-        <Route path="/toc"                             element={<TOCPage />} />
-        <Route path="/topic/:topicId"                  element={<TopicPage />} />
-        <Route path="/topic/:topicId/poem"             element={<PoemPage />} />
-        <Route path="/topic/:topicId/prose-content"   element={<ProseContentPage />} />
-        <Route path="/ilakkanam-kurippu/:label"        element={<GrammarNotePage />} />
-        <Route path="/topic/:topicId/study"            element={<StudyPage />} />
-        <Route path="/topic/:topicId/quiz"             element={<QuizPage />} />
-        <Route path="/topic/:topicId/:pageType"        element={<ProsePage />} />
+        {/* Everything below requires a logged-in user */}
+        <Route element={<RequireAuth />}>
+          {/* Langfluencer platform (root) */}
+          <Route path="/"                      element={<LangfluencerPage />} />
+          <Route path="/subject/:subjectId"    element={<SubjectPage />} />
 
-        {/* Physics (Classical Physics · 11th Standard) */}
-        <Route path="/physics/classical"                              element={<PhysicsBranchPage />} />
-        <Route path="/physics/classical/11"                           element={<PhysicsLandingPage />} />
-        <Route path="/physics/classical/11/content"                  element={<PhysicsGroupsPage />} />
-        <Route path="/physics/classical/11/content/:groupId"         element={<PhysicsTOCPage />} />
-        <Route path="/physics/chapter/:chapterId" element={<PhysicsChapterLayout />}>
-          <Route index               element={<Navigate to="theory" replace />} />
-          <Route path="theory"       element={<PhysicsChapterTheoryPage />} />
-          <Route path="exam-notes"   element={<PhysicsChapterExamNotesPage />} />
-          <Route path="interactive"  element={<PhysicsChapterInteractivePage />} />
-          <Route path="formulas"     element={<PhysicsChapterFormulasPage />} />
+          {/* 11th Tamil app */}
+          <Route path="/tamil/11"                        element={<LandingPage />} />
+          <Route path="/toc"                             element={<TOCPage />} />
+          <Route path="/topic/:topicId"                  element={<TopicPage />} />
+          <Route path="/topic/:topicId/poem"             element={<PoemPage />} />
+          <Route path="/topic/:topicId/prose-content"   element={<ProseContentPage />} />
+          <Route path="/ilakkanam-kurippu/:label"        element={<GrammarNotePage />} />
+          <Route path="/topic/:topicId/study"            element={<StudyPage />} />
+          <Route path="/topic/:topicId/quiz"             element={<QuizPage />} />
+          <Route path="/topic/:topicId/:pageType"        element={<ProsePage />} />
+
+          {/* Physics (Classical Physics · 11th Standard) */}
+          <Route path="/physics/classical"                              element={<PhysicsBranchPage />} />
+          <Route path="/physics/classical/11"                           element={<PhysicsLandingPage />} />
+          <Route path="/physics/classical/11/content"                  element={<PhysicsGroupsPage />} />
+          <Route path="/physics/classical/11/content/:groupId"         element={<PhysicsTOCPage />} />
+          <Route path="/physics/chapter/:chapterId" element={<PhysicsChapterLayout />}>
+            <Route index               element={<Navigate to="theory" replace />} />
+            <Route path="theory"       element={<PhysicsChapterTheoryPage />} />
+            <Route path="exam-notes"   element={<PhysicsChapterExamNotesPage />} />
+            <Route path="interactive"  element={<PhysicsChapterInteractivePage />} />
+            <Route path="formulas"     element={<PhysicsChapterFormulasPage />} />
+          </Route>
+          <Route path="/physics/chapter/:chapterId/subtopic/:subtopicId" element={<PhysicsSubtopicPage />} />
+          <Route path="/physics/chapter/:chapterId/interactive/:lessonId" element={<PhysicsInteractiveLessonPage />} />
         </Route>
-        <Route path="/physics/chapter/:chapterId/subtopic/:subtopicId" element={<PhysicsSubtopicPage />} />
-        <Route path="/physics/chapter/:chapterId/interactive/:lessonId" element={<PhysicsInteractiveLessonPage />} />
 
-        {/* Admin routes */}
+        {/* Admin routes — separate login, separate allowlist check (see AdminRoute) */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={
-          <ProtectedRoute><AdminLayout /></ProtectedRoute>
+          <AdminRoute><AdminLayout /></AdminRoute>
         }>
           <Route index               element={<AdminDashboard />} />
           <Route path="sections"     element={<AdminSections />} />

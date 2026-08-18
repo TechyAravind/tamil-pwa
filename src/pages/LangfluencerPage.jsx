@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import useStore from '../store/useStore'
 
 // ── Subject catalogue ────────────────────────────────────────────────────────
 const SUBJECTS = [
@@ -35,10 +36,28 @@ const BgPattern = () => (
 
 export default function LangfluencerPage() {
   const navigate = useNavigate()
+  const session  = useStore((s) => s.session)
+  const signOut  = useStore((s) => s.signOut)
+
+  const handleLogout = async () => {
+    await signOut()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <div className="min-h-screen bg-primary relative flex flex-col overflow-hidden">
       <BgPattern />
+
+      {session && (
+        <button
+          onClick={handleLogout}
+          className="absolute top-4 right-4 z-20 bg-white/10 hover:bg-white/20 text-white/80
+                     hover:text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors
+                     min-h-[36px]"
+        >
+          வெளியேறு (Logout)
+        </button>
+      )}
 
       {/* ── Header ────────────────────────────────────────────────────────── */}
       <header className="relative z-10 text-center pt-12 pb-6 px-4">
