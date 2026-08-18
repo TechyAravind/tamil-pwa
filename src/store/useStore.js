@@ -1,27 +1,27 @@
 import { create } from 'zustand'
 import { supabase } from '../supabase'
 
-// Turn raw Supabase Auth error messages into short bilingual messages a
-// student/teacher/parent can actually act on, instead of a raw API string.
+// Turn raw Supabase Auth error messages into short, actionable English
+// messages a student/teacher/parent can understand, instead of a raw API string.
 function mapAuthError(error) {
   const msg = (error?.message || '').toLowerCase()
 
   if (msg.includes('user already registered') || msg.includes('already registered'))
-    return 'இந்த மின்னஞ்சல் ஏற்கெனவே பதிவு செய்யப்பட்டுள்ளது. உள்நுழையவும் அல்லது கடவுச்சொல்லை மீட்டமைக்கவும். (This email is already registered — try logging in instead.)'
+    return 'This email is already registered. Try logging in instead, or reset your password.'
   if (msg.includes('invalid login credentials'))
-    return 'மின்னஞ்சல் அல்லது கடவுச்சொல் தவறு. (Incorrect email or password.)'
+    return 'Incorrect email or password.'
   if (msg.includes('password') && (msg.includes('at least') || msg.includes('should be') || msg.includes('weak')))
-    return 'கடவுச்சொல் குறைந்தது 6 எழுத்துகள் இருக்க வேண்டும். (Password must be at least 6 characters.)'
+    return 'Password must be at least 6 characters.'
   if (msg.includes('email') && msg.includes('invalid'))
-    return 'மின்னஞ்சல் முகவரி சரியில்லை. (Please enter a valid email address.)'
+    return 'Please enter a valid email address.'
   if (msg.includes('rate limit') || msg.includes('too many'))
-    return 'அதிக முயற்சிகள். சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும். (Too many attempts — please wait a moment and try again.)'
+    return 'Too many attempts — please wait a moment and try again.'
   if (msg.includes('failed to fetch') || msg.includes('network'))
-    return 'இணைய இணைப்பு சிக்கல். மீண்டும் முயற்சிக்கவும். (Network issue — please check your connection and try again.)'
+    return 'Network issue — please check your connection and try again.'
   if (msg.includes('email not confirmed'))
-    return 'மின்னஞ்சலை உறுதிப்படுத்தவும் — இன்னும் சிறிது நேரத்தில் அனுப்பப்பட்ட இணைப்பை சரிபார்க்கவும். (Please confirm your email using the link we sent — you can keep using the app in the meantime.)'
+    return 'Please confirm your email using the link we sent — you can keep using the app in the meantime.'
 
-  return error?.message || 'ஏதோ தவறு நேர்ந்தது. மீண்டும் முயற்சிக்கவும். (Something went wrong — please try again.)'
+  return error?.message || 'Something went wrong — please try again.'
 }
 
 const useStore = create((set, get) => ({

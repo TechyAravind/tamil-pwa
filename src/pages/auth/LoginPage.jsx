@@ -22,7 +22,7 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault()
     setError('')
-    if (!email.trim() || !password) { setError('மின்னஞ்சல் மற்றும் கடவுச்சொல் இரண்டும் தேவை.'); return }
+    if (!email.trim() || !password) { setError('Email and password are both required.'); return }
 
     setLoading(true)
     const { error: err } = await signIn(email, password)
@@ -36,7 +36,7 @@ export default function LoginPage() {
   const handleReset = async (e) => {
     e.preventDefault()
     setResetError('')
-    if (!resetEmail.trim()) { setResetError('மின்னஞ்சலை உள்ளிடவும்.'); return }
+    if (!resetEmail.trim()) { setResetError('Please enter your email.'); return }
     setResetLoading(true)
     const { error: err } = await requestPasswordReset(resetEmail)
     setResetLoading(false)
@@ -47,14 +47,14 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-primary mb-1">உள்நுழைவு</h1>
-        <p className="text-gray-500 text-sm mb-6">Log In — உங்கள் கணக்கிற்குச் செல்லவும்</p>
+        <h1 className="text-2xl font-bold text-primary mb-1">Log In</h1>
+        <p className="text-gray-500 text-sm mb-6">Welcome back — access your account</p>
 
         {!showReset ? (
           <>
             <form onSubmit={handleLogin} noValidate className="space-y-4">
               <div>
-                <label className="label">மின்னஞ்சல் (Email)</label>
+                <label className="label">Email</label>
                 <input
                   type="email" className="input" value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -62,7 +62,7 @@ export default function LoginPage() {
                 />
               </div>
               <div>
-                <label className="label">கடவுச்சொல் (Password)</label>
+                <label className="label">Password</label>
                 <input
                   type="password" className="input" value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -77,7 +77,7 @@ export default function LoginPage() {
               )}
 
               <button type="submit" disabled={loading} className="btn-primary w-full justify-center disabled:opacity-60">
-                {loading ? 'உள்நுழைகிறது…' : 'உள்நுழைக'}
+                {loading ? 'Logging in…' : 'Log In'}
               </button>
             </form>
 
@@ -86,23 +86,23 @@ export default function LoginPage() {
               onClick={() => { setShowReset(true); setResetEmail(email); setResetSent(false); setResetError('') }}
               className="text-sm text-primary hover:underline mt-3 block mx-auto"
             >
-              கடவுச்சொல் மறந்துவிட்டதா?
+              Forgot your password?
             </button>
           </>
         ) : resetSent ? (
           <div className="text-center">
             <p className="text-gray-600 text-sm mb-4">
-              கடவுச்சொல் மீட்டமைப்பு இணைப்பு <strong>{resetEmail}</strong> க்கு அனுப்பப்பட்டுள்ளது.
+              A password reset link has been sent to <strong>{resetEmail}</strong>.
             </p>
             <button type="button" onClick={() => setShowReset(false)} className="btn-ghost">
-              உள்நுழைவுக்குத் திரும்புக
+              Back to Log In
             </button>
           </div>
         ) : (
           <form onSubmit={handleReset} noValidate className="space-y-4">
-            <p className="text-gray-500 text-sm">உங்கள் மின்னஞ்சலை உள்ளிடவும் — கடவுச்சொல் மீட்டமைப்பு இணைப்பு அனுப்பப்படும்.</p>
+            <p className="text-gray-500 text-sm">Enter your email and we'll send you a password reset link.</p>
             <div>
-              <label className="label">மின்னஞ்சல் (Email)</label>
+              <label className="label">Email</label>
               <input
                 type="email" className="input" value={resetEmail}
                 onChange={(e) => setResetEmail(e.target.value)}
@@ -115,17 +115,17 @@ export default function LoginPage() {
               </div>
             )}
             <div className="flex gap-2">
-              <button type="button" onClick={() => setShowReset(false)} className="btn-ghost flex-1 justify-center">ரத்து செய்</button>
+              <button type="button" onClick={() => setShowReset(false)} className="btn-ghost flex-1 justify-center">Cancel</button>
               <button type="submit" disabled={resetLoading} className="btn-primary flex-1 justify-center disabled:opacity-60">
-                {resetLoading ? 'அனுப்புகிறது…' : 'இணைப்பை அனுப்புக'}
+                {resetLoading ? 'Sending…' : 'Send Reset Link'}
               </button>
             </div>
           </form>
         )}
 
         <p className="text-center text-sm text-gray-500 mt-5">
-          கணக்கு இல்லையா?{' '}
-          <Link to="/signup" state={location.state} className="text-primary font-semibold hover:underline">புதிய கணக்கு உருவாக்குக</Link>
+          Don't have an account?{' '}
+          <Link to="/signup" state={location.state} className="text-primary font-semibold hover:underline">Create a new account</Link>
         </p>
       </div>
     </div>

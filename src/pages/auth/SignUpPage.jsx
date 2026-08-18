@@ -5,14 +5,14 @@ import useStore from '../../store/useStore'
 const CLASSES = ['6', '7', '8', '9', '10', '11', '12']
 
 const REFERRAL_OPTIONS = [
-  { value: 'friend',        label: 'நண்பர் (Friend)' },
+  { value: 'friend',        label: 'Friend' },
   { value: 'google',        label: 'Google' },
   { value: 'youtube',       label: 'YouTube' },
   { value: 'instagram',     label: 'Instagram' },
   { value: 'snapchat',      label: 'Snapchat' },
   { value: 'linkedin',      label: 'LinkedIn' },
-  { value: 'ai_suggestion', label: 'AI Suggestion (ChatGPT / Claude போன்றவை)' },
-  { value: 'others',        label: 'மற்றவை (Others)' },
+  { value: 'ai_suggestion', label: 'AI Suggestion (ChatGPT, Claude, etc.)' },
+  { value: 'others',        label: 'Others' },
 ]
 
 export default function SignUpPage() {
@@ -50,25 +50,25 @@ export default function SignUpPage() {
 
   const validate = () => {
     const e = {}
-    if (!form.email.trim()) e.email = 'மின்னஞ்சல் தேவை'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = 'சரியான மின்னஞ்சலை உள்ளிடவும்'
+    if (!form.email.trim()) e.email = 'Email is required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = 'Please enter a valid email address'
 
-    if (!form.mobileNumber.trim()) e.mobileNumber = 'கைபேசி எண் தேவை'
-    else if (!/^[6-9][0-9]{9}$/.test(form.mobileNumber.trim())) e.mobileNumber = '10 இலக்க இந்திய கைபேசி எண்ணை உள்ளிடவும் (உ.ம். 9876543210)'
+    if (!form.mobileNumber.trim()) e.mobileNumber = 'Mobile number is required'
+    else if (!/^[6-9][0-9]{9}$/.test(form.mobileNumber.trim())) e.mobileNumber = 'Enter a valid 10-digit Indian mobile number (e.g. 9876543210)'
 
-    if (!form.password) e.password = 'கடவுச்சொல் தேவை'
-    else if (form.password.length < 6) e.password = 'குறைந்தது 6 எழுத்துகள் தேவை'
+    if (!form.password) e.password = 'Password is required'
+    else if (form.password.length < 6) e.password = 'Must be at least 6 characters'
 
-    if (form.confirmPassword !== form.password) e.confirmPassword = 'கடவுச்சொற்கள் பொருந்தவில்லை'
+    if (form.confirmPassword !== form.password) e.confirmPassword = 'Passwords do not match'
 
-    if (!form.schoolName.trim()) e.schoolName = 'பள்ளியின் பெயர் தேவை'
+    if (!form.schoolName.trim()) e.schoolName = 'School name is required'
 
-    if (!form.role) e.role = 'ஒன்றைத் தேர்ந்தெடுக்கவும்'
+    if (!form.role) e.role = 'Please select one'
 
-    if (form.role === 'student' && !form.studentClass) e.studentClass = 'வகுப்பைத் தேர்ந்தெடுக்கவும்'
-    if (form.role === 'teacher' && form.teacherClasses.length === 0) e.teacherClasses = 'குறைந்தது ஒரு வகுப்பையேனும் தேர்ந்தெடுக்கவும்'
+    if (form.role === 'student' && !form.studentClass) e.studentClass = 'Please select your class'
+    if (form.role === 'teacher' && form.teacherClasses.length === 0) e.teacherClasses = 'Please select at least one class'
 
-    if (!form.referralSource) e.referralSource = 'ஒன்றைத் தேர்ந்தெடுக்கவும்'
+    if (!form.referralSource) e.referralSource = 'Please select one'
 
     setFieldErrors(e)
     return Object.keys(e).length === 0
@@ -108,12 +108,11 @@ export default function SignUpPage() {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm text-center">
-          <h1 className="text-xl font-bold text-primary mb-2">கணக்கு உருவாக்கப்பட்டது!</h1>
+          <h1 className="text-xl font-bold text-primary mb-2">Account created!</h1>
           <p className="text-gray-600 text-sm mb-4">
-            உங்கள் மின்னஞ்சலுக்கு ஒரு உறுதிப்படுத்தல் இணைப்பு அனுப்பப்பட்டுள்ளது.
-            அதை உறுதிசெய்த பின் உள்நுழையவும்.
+            We've sent a confirmation link to your email. Please confirm it, then log in.
           </p>
-          <Link to="/login" className="btn-primary w-full justify-center">உள்நுழைவுக்குச் செல்க</Link>
+          <Link to="/login" className="btn-primary w-full justify-center">Go to Log In</Link>
         </div>
       </div>
     )
@@ -122,12 +121,12 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8">
       <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-lg">
-        <h1 className="text-2xl font-bold text-primary mb-1">புதிய கணக்கு உருவாக்குக</h1>
-        <p className="text-gray-500 text-sm mb-6">Sign Up — பாடங்களைத் தொடர இலவசக் கணக்கு உருவாக்கவும்</p>
+        <h1 className="text-2xl font-bold text-primary mb-1">Create Your Account</h1>
+        <p className="text-gray-500 text-sm mb-6">Sign Up — create a free account to continue your lessons</p>
 
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <div>
-            <label className="label">மின்னஞ்சல் (Email) *</label>
+            <label className="label">Email *</label>
             <input
               type="email" className="input" value={form.email}
               onChange={(e) => setField('email', e.target.value)}
@@ -137,7 +136,7 @@ export default function SignUpPage() {
           </div>
 
           <div>
-            <label className="label">கைபேசி எண் (Mobile Number) *</label>
+            <label className="label">Mobile Number *</label>
             <input
               type="tel" inputMode="numeric" className="input" value={form.mobileNumber}
               onChange={(e) => setField('mobileNumber', e.target.value.replace(/\D/g, '').slice(0, 10))}
@@ -148,7 +147,7 @@ export default function SignUpPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">கடவுச்சொல் (Password) *</label>
+              <label className="label">Password *</label>
               <input
                 type="password" className="input" value={form.password}
                 onChange={(e) => setField('password', e.target.value)}
@@ -157,7 +156,7 @@ export default function SignUpPage() {
               {fieldErrors.password && <p className="text-red-600 text-xs mt-1">{fieldErrors.password}</p>}
             </div>
             <div>
-              <label className="label">உறுதிசெய்க (Confirm) *</label>
+              <label className="label">Confirm Password *</label>
               <input
                 type="password" className="input" value={form.confirmPassword}
                 onChange={(e) => setField('confirmPassword', e.target.value)}
@@ -168,21 +167,21 @@ export default function SignUpPage() {
           </div>
 
           <div>
-            <label className="label">பள்ளியின் பெயர் (School Name) *</label>
+            <label className="label">School Name *</label>
             <input
               type="text" className="input" value={form.schoolName}
               onChange={(e) => setField('schoolName', e.target.value)}
-              placeholder="உ.ம. St. Xavier's Matriculation School"
+              placeholder="e.g. St. Xavier's Matriculation School"
             />
             {fieldErrors.schoolName && <p className="text-red-600 text-xs mt-1">{fieldErrors.schoolName}</p>}
           </div>
 
           <div>
-            <label className="label">நீங்கள் யார்? (Teacher / Student) *</label>
+            <label className="label">Are you a Teacher or a Student? *</label>
             <div className="flex gap-3">
               {[
-                { value: 'student', label: 'மாணவர் (Student)' },
-                { value: 'teacher', label: 'ஆசிரியர் (Teacher)' },
+                { value: 'student', label: 'Student' },
+                { value: 'teacher', label: 'Teacher' },
               ].map((opt) => (
                 <button
                   key={opt.value} type="button"
@@ -201,13 +200,13 @@ export default function SignUpPage() {
 
           {form.role === 'student' && (
             <div>
-              <label className="label">வகுப்பு (Class) — ஒன்றைத் தேர்ந்தெடுக்கவும் *</label>
+              <label className="label">Class — select one *</label>
               <select
                 className="input" value={form.studentClass}
                 onChange={(e) => setField('studentClass', e.target.value)}
               >
-                <option value="">-- தேர்ந்தெடுக்கவும் --</option>
-                {CLASSES.map((c) => <option key={c} value={c}>{c}ஆம் வகுப்பு</option>)}
+                <option value="">-- Select --</option>
+                {CLASSES.map((c) => <option key={c} value={c}>Class {c}</option>)}
               </select>
               {fieldErrors.studentClass && <p className="text-red-600 text-xs mt-1">{fieldErrors.studentClass}</p>}
             </div>
@@ -215,7 +214,7 @@ export default function SignUpPage() {
 
           {form.role === 'teacher' && (
             <div>
-              <label className="label">நீங்கள் கற்பிக்கும் வகுப்புகள் — பொருந்துவனவற்றைத் தேர்ந்தெடுக்கவும் *</label>
+              <label className="label">Classes you teach — select all that apply *</label>
               <div className="grid grid-cols-4 gap-2">
                 {CLASSES.map((c) => {
                   const active = form.teacherClasses.includes(c)
@@ -236,12 +235,12 @@ export default function SignUpPage() {
           )}
 
           <div>
-            <label className="label">எங்களைப் பற்றி எப்படி அறிந்தீர்கள்? (Where did you hear about us?) *</label>
+            <label className="label">Where did you hear about us? *</label>
             <select
               className="input" value={form.referralSource}
               onChange={(e) => setField('referralSource', e.target.value)}
             >
-              <option value="">-- தேர்ந்தெடுக்கவும் --</option>
+              <option value="">-- Select --</option>
               {REFERRAL_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
             {fieldErrors.referralSource && <p className="text-red-600 text-xs mt-1">{fieldErrors.referralSource}</p>}
@@ -254,13 +253,13 @@ export default function SignUpPage() {
           )}
 
           <button type="submit" disabled={loading} className="btn-primary w-full justify-center disabled:opacity-60">
-            {loading ? 'உருவாக்குகிறது…' : 'கணக்கு உருவாக்குக'}
+            {loading ? 'Creating account…' : 'Create Account'}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-5">
-          ஏற்கெனவே கணக்கு உள்ளதா?{' '}
-          <Link to="/login" state={location.state} className="text-primary font-semibold hover:underline">உள்நுழையவும்</Link>
+          Already have an account?{' '}
+          <Link to="/login" state={location.state} className="text-primary font-semibold hover:underline">Log In</Link>
         </p>
       </div>
     </div>
